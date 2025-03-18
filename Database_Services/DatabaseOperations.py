@@ -129,6 +129,38 @@ class DatabaseOperations:
 			print( 'Connection Error' )
 		return False
 		
+	def get_borrow_log_db(self, q_lid, rfid ):
+		try:
+			self.cur.execute( "SELECT * FROM BorrowLogs WHERE q_lid ? OR rfid = ?", ( q_lid, rfid ) )
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				return None
+			return res
+		except:
+			print( 'Possible error in fetching database borrow logs' )
+			
+	def get_return_log_db(self, q_lid, rfid):
+		try:
+			self.cur.execute( "SELECT * FROM ReturnLogs WHERE q_lid = ? OR rfid = ?", ( q_lid, rfid ) )
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				 return None
+			return res
+		except:
+			print( 'Possible error in fetching database return logs' )
+			
+	def get_not_returned_log(self, q_lid, rfid ):
+		try:
+			self.cur.execute( "SELECT BorrowLogs.log_id, BorrowLogs.q_lid, BorrowLogs.borrowDate, BorrowLogs.borrowTime FROM BorrowLogs LEFT JOIN ReturnLogs WHERE ReturnLogs.log_id = NULL")
+			res = self.cur.fetchall()
+			
+			if len(res) == 0:
+				return None
+			return res
+		except:
+			print( 'Possible error in fetching database borrow logs' )
+	
+		
 		
 		
 		

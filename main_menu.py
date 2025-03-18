@@ -29,6 +29,7 @@ class MainMenu:
         # initialize instance list
         self.to_borrow_dict = {}
         self.return_logs_dict = {}
+        self.item_logs_dict = {}
         
         
         # line after this is the initialization of buttons and widgets
@@ -86,7 +87,8 @@ class MainMenu:
         self.return_borrow_list = CTkTextbox(self.root, width=300, height=150)
         self.return_to_return_list = CTkTextbox(self.root, width=300, height=150)
         self.return_continue = CTkButton(self.root, text='Continue',font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=self.return_end)
-
+        
+        self.return_drop_box.bind( "<<ComboboxSelected>>", self.selected_return_log) # Combobox event for that 
         # End part
         self.return_end_text = CTkLabel(self.root, text='Thank you for returning the items!', font=("Sora", 20))
 
@@ -454,13 +456,16 @@ class MainMenu:
     def show_return_menu(self):
         self.clear_window()
         self.show_main_back()
-
+        
         self.return_items.place(relx=0.5, rely=0.15, anchor='center')
         self.return_items_entry.place(relx=0.16, rely=0.25, anchor='center')
         self.return_drop_box.place(relx=0.5, rely=0.25, anchor='center')
         self.return_borrow_list.place(relx=0.25, rely=0.5, anchor='center')
         self.return_to_return_list.place(relx=0.75, rely=0.5, anchor='center')
         self.return_continue.place(relx=0.5, rely=0.8, anchor='center')
+        
+    def selected_return_log(self):
+        print('tests')
 
     def show_return_borrow_logs(self, value):
         index = self.return_drop_box._values.index(value)
