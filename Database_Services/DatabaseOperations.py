@@ -13,12 +13,16 @@ class DatabaseOperations:
 		self.cur = cur
 	
 	def register_employee(self, employee): # this function is used to register an employee
-		if employee.employee_is_acceptable:
-			self.cur.execute( "INSERT INTO NcrEmployees( q_lid, firstName, lastName, rfid) VALUES(?, ?, ?, ?)", (employee.q_lid, employee.first_name, employee.last_name, employee.rfid) )
-			self.conn.commit()
-			return True
-		else:
+		try:
+			if employee.employee_is_acceptable:
+				self.cur.execute( "INSERT INTO NcrEmployees( q_lid, firstName, lastName, rfid) VALUES(?, ?, ?, ?)", (employee.q_lid, employee.first_name, employee.last_name, employee.rfid) )
+				self.conn.commit()
+				return True
+		except mariadb.InterfaceError:
+			print( 'Disconnection with the server' )
 			return False
+			
+		return False
 			
 	def search_employee(self, q_lid = None, rfid = None): # this searches for a specific employee
 		self.cur.execute( "SELECT * FROM NcrEmployees WHERE q_lid = ? OR rfid = ?", (q_lid, rfid))
@@ -43,7 +47,7 @@ class DatabaseOperations:
 		
 		
 	def add_item_equipment(self, the_equipment):
-		if self.search_equipment( the_equipment.barcode ) !=True:
+		if self.search_equipment( the_equipment.barcode ) != True:
 			self.cur.execute( "INSERT INTO NcrEquipments ( itemDescription, toolName, barcode, dateOfAcquisition, calibrationDate ) VALUES ( ?, ?, ?, ?, ?)", 
 							( the_equipment.description, the_equipment.tool_name, the_equipment.barcode, the_equipment.date_of_acquisition, the_equipment.calibration_date ))
 			self.conn.commit()
@@ -87,6 +91,44 @@ class DatabaseOperations:
 		if not result == None:
 			return result
 		return None		
+		
+	def borrow_log_db(self, the_borrow_log, valueType ):
+		try:
+			self.cur.execute( "INSERT INTO BorrowLogs ( q_lid, borrowDate, borrowTime ) VALUES ( ?, ?, ?)", ( the_borrow_log.q_lid, the_borrow_log.borrow_date, the_borrow_log.borrow_time) )
+			self.cur.execute( "SELECT * FROM BorrowLogs ORDER BY log_id DESC LIMIT 1" )
+			get_val = self.cur.fetchone()
+			print( 'JGH' )
+			if valueType == 1 and get_val != None:
+				for list_val in the_borrow_log.borrow_list:
+					if not self.borrow_equipment_db( get_val[ 0 ], list_val[ 1 ] ) == True:
+						return False  # handle if db errors
+			elif valueType == 2:
+				for list_val in the_borrow_log.borrow_list:
+					if not self.borrow_key_db( get_val[ 0 ], list_val[ 1 ] ) == True:
+						return False # handle if db errors 
+			return True
+		except mariadb.InterfaceError:
+			print( 'Borrow item connection Error' )
+		return False
+		
+	def borrow_key_db(self, logID, keyID):
+		try:	
+			self.cur.execute( "INSERT INTO BorrowedKeys (log_id, keyID) VALUES ( ?, ? )", (logID, keyID ) )
+			self.conn.commit()
+			return True
+		except mariadb.InterfaceError:
+			print( 'Connection Error' )
+		return False
+			
+	def borrow_equipment_db(self, logID, equipmentID ):
+		try:
+			self.cur.execute( "INSERT INTO BorrowedEquipment (log_id, equipmentID) VALUES ( ?, ? )", (logID, equipmentID ) )
+			self.conn.commit()
+			return True
+		except mariadb.InterfaceError:
+			print( 'Connection Error' )
+		return False
+		
 		
 		
 		

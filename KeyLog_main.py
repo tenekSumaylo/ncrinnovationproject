@@ -36,6 +36,7 @@ main_menu = MainMenu(root, db_actions, hardware_actions)
 root.mainloop()
 
 conn.close()
+cur.close()
 hardware_actions.gpio_clean_all()
 
 #445-0753129

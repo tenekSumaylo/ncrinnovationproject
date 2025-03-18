@@ -27,10 +27,8 @@ class MainMenu:
         self.hardware_actions = hardware_actions
         
         # initialize instance list
-        
         self.to_borrow_dict = {}
-        self.equipments_dict = {}
-        self.keys_dict = {}
+        self.return_logs_dict = {}
         
         
         # line after this is the initialization of buttons and widgets
@@ -229,8 +227,9 @@ class MainMenu:
         #UI Start program
         self.show_main_buttons()
         
-        #indicator for keys/tools
+        #instance members as holders for singleton data
         self.indicator = 0
+        self.current_qlid = ''
         
     #Clear screen and entries
     def clear_window(self):
@@ -358,6 +357,8 @@ class MainMenu:
                 res = self.db_actions.search_employee( self.return_scan_entry.get(), self.return_scan_entry.get())                
 
         if not res is None:
+                self.to_borrow_dict.clear()
+                self.current_qlid = res[ 0 ]
                 if valueType == 1:
                         self.show_borrow_selection_menu()
                 elif valueType == 2:
@@ -389,29 +390,57 @@ class MainMenu:
 
     def borrow_add_entry(self, event=None):
         try:
-                if self.indicator == 1:
-                        res = self.db_actions.search_equipment( self.borrow_entry.get() )
-                        temp = self.db_actions.get_equipment_details( self.borrow_entry.get())
-                        dict_item = { 'barcode' : temp[ 3 ], 'name' : temp[ 2 ], 'id' : temp[ 0 ] }
-                else:
-                        res = self.db_actions.search_key( self.borrow_entry.get() )
-                        temp = self.db_actions.get_key_details( self.borrow_entry.get() )
-                        dict_item = { 'barcode' : temp[ 3 ], 'name' : temp[ 1 ], 'id' : temp [ 0 ] }
+                temp = {}
+                temp_list = []
                 
-                        entry_text = dict_item[ 'name' ]
+                if self.indicator == 1:
+                        temp = self.db_actions.get_equipment_details( self.borrow_entry.get())
+                        if not temp is None:
+                                temp_list = [ temp[ 2 ], temp[ 0 ] ]
+                        print( 'this is equipment' )
+                elif self.indicator == 2:
+                        temp = self.db_actions.get_key_details( self.borrow_entry.get() )
+                        if not temp is None:
+                                temp_list = [ temp[ 1 ], temp[ 0 ] ]
+                        print( 'this is key' )
+                        
+                if not temp is None and self.to_borrow_dict.get( self.borrow_entry.get(), 'False') == 'False':
+                        entry_text = temp_list[ 0 ]
                         self.borrow_text.insert('end', entry_text + '\n')
-                        self.borrow_entry.delete(0,'end')
-                        self.to_borrow_dict[ self.borrow_entry.get() ] = self.borrow_entry.get()                        
+                        self.to_borrow_dict[ self.borrow_entry.get() ] = temp_list # put inside dictionary
+                else:
+                        print( 'BORROW ITEM ONLY ONCE' ) 
+                        
+                self.borrow_entry.delete(0,'end')                     
         except KeyError:
                 print( temp ) 
         except TypeError:
                 print( 'This is a type error' )
                 
-
+    
+    
     def borrow_end(self):
-        self.clear_window()
-        self.show_main_back()
-        self.borrow_end_text.place(relx=0.5, rely=0.4, anchor='center')
+        if not len(self.to_borrow_dict) == 0:
+                borrow_list = []
+                the_borrow_log = ncr_borrow_logs.BorrowLogs()
+                for key, value in self.to_borrow_dict.items():  # extract the list from dictionary
+                        print( f" {key} --  {value}")
+                        borrow_list.append( value )
+                the_borrow_log.set_borrow_logs( self.current_qlid, borrow_list )
+                if self.db_actions.borrow_log_db(the_borrow_log, 1 if self.indicator == 1 else 2 ) == True:
+                        print( 'SUCCESSFUL LOG' ) 
+                
+                self.clear_window()
+                self.show_main_back()
+                self.borrow_end_text.place(relx=0.5, rely=0.4, anchor='center')
+                
+                # clear all values needed
+                self.current_qlid = ''
+                self.to_borrow_dict.clear()
+        else:
+                print( 'BORROW SOMETHING TO PROCEED' )
+ 
+        
     #End of Borrow Section
 
 #################################################################################################################################################################################################
