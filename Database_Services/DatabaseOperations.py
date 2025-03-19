@@ -62,7 +62,7 @@ class DatabaseOperations:
 		return False
 		
 	def get_equipments(self):
-		self.cur.execute(  "SELECT * FROM NcrEquipments" )
+		self.cur.execute(  "SELECT * FROM NcrEquipments WHERE is_deleted = 0" )
 		result = self.cur.fetchall()
 		if result is []:
 			return []
@@ -70,7 +70,7 @@ class DatabaseOperations:
 			return result
 			
 	def get_keys(self):
-		self.cur.execute( "SELECT * FROM NcrKeys" )
+		self.cur.execute( "SELECT * FROM NcrKeys WHERE is_deleted = 0" )
 		result = self.cur.fetchall()
 		if result is []:
 			return []
@@ -92,37 +92,37 @@ class DatabaseOperations:
 			return result
 		return None		
 		
-	def borrow_log_db(self, the_borrow_log, valueType ):
+	def borrow_log_db(self, the_borrow_log ):
 		try:
-			self.cur.execute( "INSERT INTO BorrowLogs ( q_lid, borrowDate, borrowTime ) VALUES ( ?, ?, ?)", ( the_borrow_log.q_lid, the_borrow_log.borrow_date, the_borrow_log.borrow_time) )
+			self.cur.execute( "INSERT INTO BorrowLogs ( q_lid, borrowDate, borrowTime, borrow_type ) VALUES ( ?, ?, ?, ?)", ( the_borrow_log.q_lid, the_borrow_log.borrow_date, the_borrow_log.borrow_time, the_borrow_log.borrow_type) )
 			self.cur.execute( "SELECT * FROM BorrowLogs ORDER BY log_id DESC LIMIT 1" )
 			get_val = self.cur.fetchone()
 			print( 'JGH' )
-			if valueType == 1 and get_val != None:
+			if the_borrow_log.borrow_type == 'equipment' and get_val != None: # changes to equipment
 				for list_val in the_borrow_log.borrow_list:
-					if not self.borrow_equipment_db( get_val[ 0 ], list_val[ 1 ] ) == True:
+					if not self.borrow_equipment_db( get_val[ 0 ], list_val[ 1 ], list_val[ 0 ], list_val[ 2 ] ) == True:
 						return False  # handle if db errors
-			elif valueType == 2:
+			elif the_borrow_log.borrow_type == 'key': # changes to key
 				for list_val in the_borrow_log.borrow_list:
-					if not self.borrow_key_db( get_val[ 0 ], list_val[ 1 ] ) == True:
+					if not self.borrow_key_db( get_val[ 0 ], list_val[ 1 ], list_val[ 0 ], list_val[ 2 ] ) == True:
 						return False # handle if db errors 
 			return True
 		except mariadb.InterfaceError:
 			print( 'Borrow item connection Error' )
 		return False
 		
-	def borrow_key_db(self, logID, keyID):
+	def borrow_key_db(self, logID, keyID, name, barcode):
 		try:	
-			self.cur.execute( "INSERT INTO BorrowedKeys (log_id, keyID) VALUES ( ?, ? )", (logID, keyID ) )
+			self.cur.execute( "INSERT INTO BorrowedKeys (log_id, keyID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, keyID, name, barcode ) )
 			self.conn.commit()
 			return True
 		except mariadb.InterfaceError:
 			print( 'Connection Error' )
 		return False
 			
-	def borrow_equipment_db(self, logID, equipmentID ):
+	def borrow_equipment_db(self, logID, equipmentID, name, barcode ):
 		try:
-			self.cur.execute( "INSERT INTO BorrowedEquipment (log_id, equipmentID) VALUES ( ?, ? )", (logID, equipmentID ) )
+			self.cur.execute( "INSERT INTO BorrowedEquipment (log_id, equipmentID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, equipmentID, name, barcode ) )
 			self.conn.commit()
 			return True
 		except mariadb.InterfaceError:
@@ -131,7 +131,7 @@ class DatabaseOperations:
 		
 	def get_borrow_log_db(self, q_lid, rfid ):
 		try:
-			self.cur.execute( "SELECT * FROM BorrowLogs WHERE q_lid ? OR rfid = ?", ( q_lid, rfid ) )
+			self.cur.execute( "SELECT * FROM BorrowLogs WHERE q_lid = ?", ( q_lid,) )
 			res = self.cur.fetchall()
 			if len(res) == 0:
 				return None
@@ -141,7 +141,7 @@ class DatabaseOperations:
 			
 	def get_return_log_db(self, q_lid, rfid):
 		try:
-			self.cur.execute( "SELECT * FROM ReturnLogs WHERE q_lid = ? OR rfid = ?", ( q_lid, rfid ) )
+			self.cur.execute( "SELECT * FROM ReturnLogs WHERE q_lid = ?", ( q_lid,) )
 			res = self.cur.fetchall()
 			if len(res) == 0:
 				 return None
@@ -149,16 +149,31 @@ class DatabaseOperations:
 		except:
 			print( 'Possible error in fetching database return logs' )
 			
-	def get_not_returned_log(self, q_lid, rfid ):
+	def get_not_returned_items_db(self, q_lid):
 		try:
-			self.cur.execute( "SELECT BorrowLogs.log_id, BorrowLogs.q_lid, BorrowLogs.borrowDate, BorrowLogs.borrowTime FROM BorrowLogs LEFT JOIN ReturnLogs WHERE ReturnLogs.log_id = NULL")
+			self.cur.execute( "SELECT BorrowLogs.log_id, BorrowLogs.q_lid, BorrowLogs.borrowDate, BorrowLogs.borrowTime, BorrowLogs.borrow_type FROM BorrowLogs LEFT JOIN ReturnLogs USING(log_id) WHERE ReturnLogs.log_id IS NULL AND BorrowLogs.q_lid = ?", ( q_lid, ) )
 			res = self.cur.fetchall()
 			
 			if len(res) == 0:
 				return None
 			return res
-		except:
+		except mariadb.InterfaceError:
 			print( 'Possible error in fetching database borrow logs' )
+			
+	def get_return_items_db(self, log_id):
+		# this checks for both borrowed keys or borrowed items
+		self.cur.execute( "SELECT * FROM BorrowedKeys WHERE log_id = ?", (log_id,) )
+		res = self.cur.fetchall()
+		if len(res) != 0:
+			return res
+		else:
+			self.cur.execute( "SELECT * FROM BorrowedEquipment WHERE log_id = ?", (log_id, ) )
+			res = self.cur.fetchall()
+			if res == 0:
+				return None
+			else:
+				return res
+		
 	
 		
 		

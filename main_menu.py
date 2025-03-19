@@ -13,6 +13,7 @@ import ReturnLogs as ncr_return_logs
 import BorrowLogs as ncr_borrow_logs
 import HardwareOperations as hardware_operations
 import DatabaseOperations as database_operations
+import BorrowedItem as borrowed_item
 from dateutil import parser
 from datetime import datetime
 from dateutil.parser import ParserError
@@ -30,9 +31,11 @@ class MainMenu:
         
         # initialize instance list
         self.to_borrow_dict = {}
-        self.return_logs_dict = {}
+        self.not_returned_logs_dict = {}
         self.item_logs_dict = {}
         
+        #instance member
+        self.selected_log = StringVar()
         
         # line after this is the initialization of buttons and widgets
 
@@ -85,7 +88,8 @@ class MainMenu:
         # second part main function
         self.return_items = CTkLabel(self.root, text='What would you like to return?', font=("Sora", 20))
         self.return_items_entry = CTkEntry(self.root, width=130, placeholder_text='Enter Borrowed items')
-        self.return_drop_box = CTkComboBox(self.root, values=["Select an Option","Borrow Log 1","Borrow Log 2","Borrow Log 3", "Borrow Log 4", "Borrow Log 5"], width=280, height=30,command=self.show_return_borrow_logs)
+        self.return_drop_box = CTkComboBox(self.root, width=280, height=30,command=self.show_return_borrow_logs, variable=self.selected_log)
+        self.return_drop_box.set( 'Select To Return')
         self.return_borrow_list = CTkTextbox(self.root, width=300, height=150)
         self.return_to_return_list = CTkTextbox(self.root, width=300, height=150)
         self.return_continue = CTkButton(self.root, text='Continue',font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=self.return_end)
@@ -226,7 +230,7 @@ class MainMenu:
 
         self.admin_item_tool_ID_barcode_entry.bind('<Return>', self.admin_item_tool_batch_add_entry)
         
-        
+
         
         
        
@@ -369,11 +373,13 @@ class MainMenu:
                 res = self.db_actions.search_employee( self.return_scan_entry.get(), self.return_scan_entry.get())                
 
         if not res is None:
-                self.to_borrow_dict.clear()
                 self.current_qlid = res[ 0 ]
                 if valueType == 1:
+                        self.to_borrow_dict.clear()
                         self.show_borrow_selection_menu()
                 elif valueType == 2:
+                        self.not_returned_logs_dict.clear()
+                        self.item_logs_dict.clear()
                         self.show_return_menu()
         else:
                 self.message_box_test = CTkMessagebox(title="ERROR", message="Unsuccessful Login", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
@@ -408,12 +414,12 @@ class MainMenu:
                 if self.indicator == 1:
                         temp = self.db_actions.get_equipment_details( self.borrow_entry.get())
                         if not temp is None:
-                                temp_list = [ temp[ 2 ], temp[ 0 ] ]
+                                temp_list = [ temp[ 2 ], temp[ 0 ], temp[ 3 ] ]
                         print( 'this is equipment' )
                 elif self.indicator == 2:
                         temp = self.db_actions.get_key_details( self.borrow_entry.get() )
                         if not temp is None:
-                                temp_list = [ temp[ 1 ], temp[ 0 ] ]
+                                temp_list = [ temp[ 1 ], temp[ 0 ], temp[ 3 ] ]
                         print( 'this is key' )
                         
                 if not temp is None and self.to_borrow_dict.get( self.borrow_entry.get(), 'False') == 'False':
@@ -421,7 +427,7 @@ class MainMenu:
                         self.borrow_text.insert('end', entry_text + '\n')
                         self.to_borrow_dict[ self.borrow_entry.get() ] = temp_list # put inside dictionary
                 else:
-                        print( 'BORROW ITEM ONLY ONCE' ) 
+                        self.message_box_test = CTkMessagebox(title="ERROR", message="You can only borrow items once", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50") 
                         
                 self.borrow_entry.delete(0,'end')                     
         except KeyError:
@@ -438,8 +444,8 @@ class MainMenu:
                 for key, value in self.to_borrow_dict.items():  # extract the list from dictionary
                         print( f" {key} --  {value}")
                         borrow_list.append( value )
-                the_borrow_log.set_borrow_logs( self.current_qlid, borrow_list )
-                if self.db_actions.borrow_log_db(the_borrow_log, 1 if self.indicator == 1 else 2 ) == True:
+                the_borrow_log.set_borrow_logs( self.current_qlid, borrow_list, 'key' if self.indicator == 2 else 'equipment' )
+                if self.db_actions.borrow_log_db(the_borrow_log) == True:
                         print( 'SUCCESSFUL LOG' ) 
                 
                 self.clear_window()
@@ -450,23 +456,23 @@ class MainMenu:
                 self.current_qlid = ''
                 self.to_borrow_dict.clear()
         else:
-                print( 'BORROW SOMETHING TO PROCEED' )
+                self.message_box_test = CTkMessagebox(title="ERROR", message="Borrow something to proceed", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
  
         
     #End of Borrow Section
 
 #################################################################################################################################################################################################
 
-    #Retun Section
+    #Return Section
     def show_return_id_menu(self):
         self.return_scan_id.place(relx=0.5, rely=0.2, anchor='center')
         self.return_scan_entry.place(relx=0.5, rely=0.4, anchor='center')
         self.return_scan_next.place(relx=0.5, rely=0.6, anchor='center')
 
     def show_return_menu(self):
+        list_of_items = []    
         self.clear_window()
         self.show_main_back()
-        
         self.return_items.place(relx=0.5, rely=0.15, anchor='center')
         self.return_items_entry.place(relx=0.16, rely=0.25, anchor='center')
         self.return_drop_box.place(relx=0.5, rely=0.25, anchor='center')
@@ -474,29 +480,29 @@ class MainMenu:
         self.return_to_return_list.place(relx=0.75, rely=0.5, anchor='center')
         self.return_continue.place(relx=0.5, rely=0.8, anchor='center')
         
+        res = self.db_actions.get_not_returned_items_db( self.current_qlid )
+        if len(res) == 0:
+                print( 'empty')
+        else:
+                for i in res:
+                        list_of_items.clear()
+                        employee_borrow_log = ncr_borrow_logs.BorrowLogs()
+                        item_result = self.db_actions.get_return_items_db( i [ 0 ] )
+                        for k in item_result:
+                                ncr_item = borrowed_item.BorrowedItem()
+                                ncr_item.set_item( k[ 0 ], k[ 1 ], k[ 2 ], k[ 3 ])
+                                list_of_items.append( ncr_item )
+                        if len(item_result) != 0:
+                                employee_borrow_log.set_borrow_logs_view( i[ 0 ], [ 1 ], i[ 2 ], i[ 3 ], list_of_items)
+                        self.not_returned_logs_dict[ f"{i[ 0 ]}  {i[ 2 ]}" ] = employee_borrow_log
+                self.return_drop_box.configure( values = self.not_returned_logs_dict )
+        
     def selected_return_log(self):
-        print('tests')
+        print('hehe')
 
     def show_return_borrow_logs(self, value):
-        index = self.return_drop_box._values.index(value)
-
-        if index == 0:
-            self.return_borrow_list.delete("1.0",END)
-        elif index == 1:
-            self.return_borrow_list.delete("1.0",END)
-            self.return_borrow_list.insert(END, "1.) Put the Data base stuff here (1)")
-        elif index == 2:
-            self.return_borrow_list.delete("1.0", END)
-            self.return_borrow_list.insert(END, "1.) Put the Data base stuff here (2)")
-        elif index == 3:
-            self.return_borrow_list.delete("1.0", END)
-            self.return_borrow_list.insert(END, "1.) Put the Data base stuff here (3)")
-        elif index == 4:
-            self.return_borrow_list.delete("1.0", END)
-            self.return_borrow_list.insert(END, "1.) Put the Data base stuff here (4)")
-        elif index == 5:
-            self.return_borrow_list.delete("1.0", END)
-            self.return_borrow_list.insert(END, "1.) Put the Data base stuff here (5)")
+            
+        print('Test')
 
 
     def return_end(self):
@@ -585,10 +591,10 @@ class MainMenu:
                         if self.db_actions.register_employee( employee ):
                                 self.user_info_register_submit_label.place(relx=0.5, rely=0.3, anchor='center')
                 else:
-                        self.message_box_test = CTkMessagebox(title="ERROR", message="Please fill up all boxes")
+                        self.message_box_test = CTkMessagebox(title="ERROR", message="Please fill up all boxes", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
         
         else: # create an error message for existing
-                     self.message_box_test = CTkMessagebox(title="ERROR", message="User already Exists")
+                     self.message_box_test = CTkMessagebox(title="ERROR", message="User already exists", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
         
         #End of User Information Section
 
@@ -687,9 +693,9 @@ class MainMenu:
                         if self.db_actions.add_item_key( the_key ):
                                 print( "Successful")
                 else:
-                        self.message_box_test = CTkMessagebox(title="ERROR", message="KEY was not Accepted")
+                        self.message_box_test = CTkMessagebox(title="ERROR", message="Invalid Key", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
         else:
-                self.message_box_test = CTkMessagebox(title="ERROR", message="Barcode already exists for this unit")
+                self.message_box_test = CTkMessagebox(title="ERROR", message="Barcode already exists for this unit", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
 
     def show_key_register_batch_end(self):
         self.clear_window()
@@ -786,9 +792,9 @@ class MainMenu:
                         if self.db_actions.add_item_equipment( the_equipment ):
                                 print("Successful")
                 else:
-                        print("TABAAAAAANG")
+                        self.message_box_test = CTkMessagebox(title="ERROR", message="Invalid Equipment", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
         else:
-                print('EXISTING NA')
+                self.message_box_test = CTkMessagebox(title="ERROR", message="Barcode already exists for this equipment", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
                 
     def convert_to_date(self, theDate):
         try:
