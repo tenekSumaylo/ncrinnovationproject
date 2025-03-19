@@ -376,7 +376,7 @@ class MainMenu:
                 elif valueType == 2:
                         self.show_return_menu()
         else:
-                print('Unsuccessful login')
+                self.message_box_test = CTkMessagebox(title="ERROR", message="Unsuccessful Login", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
 
     def show_borrow_selection_menu(self):
         self.clear_window()
