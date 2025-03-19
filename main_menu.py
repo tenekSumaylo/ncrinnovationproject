@@ -1,5 +1,7 @@
 from customtkinter import *
 from CTkDatePicker import CTkDatePicker
+from CTkMessagebox import CTkMessagebox
+
 import sys
 sys.path.append('/home/keyloggerpi/ncr_innovation_project/PythonProject/Hardware_Services')
 sys.path.append('/home/keyloggerpi/ncr_innovation_project/PythonProject/Database_Services')
@@ -223,7 +225,15 @@ class MainMenu:
         self.admin_item_tool_end = CTkLabel(self.root, text='Equipment/s registered!', font=("Sora", 20))
 
         self.admin_item_tool_ID_barcode_entry.bind('<Return>', self.admin_item_tool_batch_add_entry)
-        #################################################################################################################################################################################################
+        
+        
+        
+        
+       
+        
+        
+        
+#########################################################################################################################################################################################################
 
 
         #UI Start program
@@ -575,10 +585,10 @@ class MainMenu:
                         if self.db_actions.register_employee( employee ):
                                 self.user_info_register_submit_label.place(relx=0.5, rely=0.3, anchor='center')
                 else:
-                        print( 'NORWENNN' ) # please create an error message for missing 
+                        self.message_box_test = CTkMessagebox(title="ERROR", message="Please fill up all boxes")
         
         else: # create an error message for existing
-                     print('Existing')
+                     self.message_box_test = CTkMessagebox(title="ERROR", message="User already Exists")
         
         #End of User Information Section
 
@@ -677,9 +687,9 @@ class MainMenu:
                         if self.db_actions.add_item_key( the_key ):
                                 print( "Successful")
                 else:
-                        print('PUT A MESSAGE BOX OTIN/ NOT ACCEPTED')
+                        self.message_box_test = CTkMessagebox(title="ERROR", message="KEY was not Accepted")
         else:
-                print( 'PUT A MESSAGE BOX/ EXISTING ANG BARCODE' )
+                self.message_box_test = CTkMessagebox(title="ERROR", message="Barcode already exists for this unit")
 
     def show_key_register_batch_end(self):
         self.clear_window()
