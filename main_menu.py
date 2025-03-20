@@ -32,7 +32,7 @@ class MainMenu:
         # initialize instance list
         self.to_borrow_dict = {}
         self.not_returned_logs_dict = {}
-        self.item_logs_dict = {}
+        self.to_return_list = []
         
         #instance member
         self.selected_log = StringVar()
@@ -41,17 +41,17 @@ class MainMenu:
 
         #main buttons
         self.lab_inventory = CTkLabel(self.root, text='NCR Laboratory Inventory System',font=("Sora", 20))
-        self.borrow_button = CTkButton(self.root, text='Borrow', font=("Sora", 15, "bold"),height=80,width=170, hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2 ,command=self.borrow_pressed)
-        self.return_button = CTkButton(self.root, text='Return', font=("Sora", 15, "bold"),height=80,width=170, hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2 ,command=self.return_pressed)
-        self.user_info_button = CTkButton(self.root, text='User Information', font=("Sora", 15, "bold"),height=80,width=170, hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2 ,command=self.user_info_pressed)
-        self.admin_button = CTkButton(self.root, text='Admin', font=("Sora", 15, "bold"),height=80,width=170, hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2 ,command=self.admin_pressed)
+        self.borrow_button = CTkButton(self.root, text='Borrow', font=("Sora", 15),height=80,width=170, hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2 ,command=self.borrow_pressed)
+        self.return_button = CTkButton(self.root, text='Return', font=("Sora", 15),height=80,width=170, hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2 ,command=self.return_pressed)
+        self.user_info_button = CTkButton(self.root, text='User Information', font=("Sora", 15),height=80,width=170, hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2 ,command=self.user_info_pressed)
+        self.admin_button = CTkButton(self.root, text='Admin', font=("Sora", 15),height=80,width=170, hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2 ,command=self.admin_pressed)
 
 
         #back buttons
-        self.main_back = CTkButton(self.root, text='Back to Menu', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=80,height=50,command=self.go_to_main)
-        self.borrow_back = CTkButton(self.root, text='Back',font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=80,height=50,command=self.show_borrow_selection_menu)
-        self.admin_back = CTkButton(self.root, text='Back', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12, border_color="#4CAF50", border_width=2,width=80,height=50, command=self.show_admin_selection_menu)
-        self.admin_main_back = CTkButton(self.root, text='Back', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12, border_color="#4CAF50", border_width=2,width=80, height=50, command=self.show_admin_menu)
+        self.main_back = CTkButton(self.root, text='Back to Menu', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=80,height=50,command=self.go_to_main)
+        self.borrow_back = CTkButton(self.root, text='Back',font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=80,height=50,command=self.show_borrow_selection_menu)
+        self.admin_back = CTkButton(self.root, text='Back', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12, border_color="#005142", border_width=2,width=80,height=50, command=self.show_admin_selection_menu)
+        self.admin_main_back = CTkButton(self.root, text='Back', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12, border_color="#005142", border_width=2,width=80, height=50, command=self.show_admin_menu)
 
         #borrow_buttons
         # first part buttons and labels
@@ -59,16 +59,16 @@ class MainMenu:
         self.borrow_scan_entry = CTkEntry(self.root, width=280)
         self.borrow_scan_entry.bind('<Return>', lambda event: self.login_authentication(1, event))
         
-        self.borrow_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=lambda: self.login_authentication(1))
+        self.borrow_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=lambda: self.login_authentication(1))
 
-        self.borrow_keys = CTkButton(self.root, text='Keys', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=lambda: self.show_borrow_menu('keys'))
-        self.borrow_tools = CTkButton(self.root, text='Tools', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=lambda: self.show_borrow_menu('equipments'))
+        self.borrow_keys = CTkButton(self.root, text='Keys', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=lambda: self.show_borrow_menu('keys'))
+        self.borrow_tools = CTkButton(self.root, text='Tools', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=lambda: self.show_borrow_menu('equipments'))
 
         # second part main function
         self.borrow_items = CTkLabel(self.root, text='Scan the items you want to borrow')
         self.borrow_entry = CTkEntry(self.root, width=180)
-        self.borrow_submit = CTkButton(self.root, text='Submit', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42",  corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=self.borrow_add_entry)
-        self.borrow_continue = CTkButton(self.root, text='Continue', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42",  corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=self.borrow_end)
+        self.borrow_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",  corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.borrow_add_entry)
+        self.borrow_continue = CTkButton(self.root, text='Continue', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",  corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.borrow_end)
         self.borrow_text = CTkTextbox(self.root, width=250, height=200)
 
         # End part
@@ -83,7 +83,7 @@ class MainMenu:
         self.return_scan_entry = CTkEntry(self.root, width=300)
         self.return_scan_entry.bind('<Return>', lambda event: self.login_authentication(2, event))
         
-        self.return_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=lambda: self.login_authentication(2))
+        self.return_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=lambda: self.login_authentication(2))
 
         # second part main function
         self.return_items = CTkLabel(self.root, text='What would you like to return?', font=("Sora", 20))
@@ -92,8 +92,11 @@ class MainMenu:
         self.return_drop_box.set( 'Select To Return')
         self.return_borrow_list = CTkTextbox(self.root, width=300, height=150)
         self.return_to_return_list = CTkTextbox(self.root, width=300, height=150)
-        self.return_continue = CTkButton(self.root, text='Continue',font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=self.return_end)
+        self.return_continue = CTkButton(self.root, text='Continue',font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.return_end)
         
+        
+        #binding for return buttons
+        self.return_items_entry.bind('<Return>', self.verify_return_entry )
         self.return_drop_box.bind( "<<ComboboxSelected>>", self.selected_return_log) # Combobox event for that 
         # End part
         self.return_end_text = CTkLabel(self.root, text='Thank you for returning the items!', font=("Sora", 20))
@@ -101,13 +104,13 @@ class MainMenu:
         #User Info Buttons
         #first part
         self.user_info_main = CTkLabel(self.root, text = 'NCR Key-Tool Logging User Information', font=("Sora", 20))
-        self.user_info_search = CTkButton(self.root, text='Search',font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42",corner_radius=12,border_color="#4CAF50", border_width=2,width=120,height=50, command=self.show_user_info_search_menu)
-        self.user_info_register = CTkButton(self.root, text='Register', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=120,height=50,command=self.show_user_info_register_menu)
+        self.user_info_search = CTkButton(self.root, text='Search',font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=120,height=50, command=self.show_user_info_search_menu)
+        self.user_info_register = CTkButton(self.root, text='Register', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=120,height=50,command=self.show_user_info_register_menu)
 
         #search part
         self.user_info_search_label = CTkLabel(self.root, text='Enter your QLID or RFID', font=("Sora", 20))
         self.user_info_search_entry = CTkEntry(self.root, width=200)
-        self.user_info_search_submit = CTkButton(self.root, text='Submit', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.show_user_info_credentials)
+        self.user_info_search_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_user_info_credentials)
 
         self.user_info_search_name = CTkLabel(self.root, text='Name:')
         self.user_info_search_name_box = CTkTextbox(self.root, width=300, height=10)
@@ -135,67 +138,66 @@ class MainMenu:
         self.user_info_register_rfid_entry = CTkEntry(self.root, width=180)
 
         self.user_info_register_submit_label = CTkLabel(self.root, text='User registered!', font=("Sora", 30))
-        self.user_info_register_submit = CTkButton(self.root, text='Submit', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42",corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command= self.user_registered_end)
+        self.user_info_register_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command= self.user_registered_end)
 
 
         #Admin part
         #first part
         self.admin_scan_id = CTkLabel(self.root, text='Admin Password', font=("Sora", 20))
         self.admin_scan_entry = CTkEntry(self.root, width=300)
-        self.admin_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15, "bold"), hover_color="#4CAF50", fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command=self.show_admin_menu)
+        self.admin_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.show_admin_menu)
 
 
         self.admin_label = CTkLabel(self.root, text='Admin configurations', font=('Sora', 30))
-        self.admin_register_item_button = CTkButton(self.root, text='Register New Item', font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42",corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.show_admin_selection_menu)
-        self.admin_log_reports_button = CTkButton(self.root, text="Logs and Reports", font=("Sora", 15,"bold"), hover_color="#4CAF50", fg_color="#004E42",corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50) #command for batch
-
+        self.admin_register_item_button = CTkButton(self.root, text='Register New Item', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_admin_selection_menu)
+        self.admin_log_reports_button = CTkButton(self.root, text="Logs and Reports", font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.logs_reports_menu)
 
         #Register Item part
         self.admin_item_label = CTkLabel(self.root, text='What would you like to register?', font=('Sora', 20))
         
         #batch logic
-        self.admin_keys = CTkButton(self.root, text='Keys', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.show_admin_key_decision_menu)
-        self.admin_key_individual_add = CTkButton(self.root, text='Single Add', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.admin_register_key_menu)
-        self.admin_key_batch_add = CTkButton(self.root, text='Batch Add', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50,command= self.admin_register_key_batch)
+        self.admin_keys = CTkButton(self.root, text='Keys', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_admin_key_decision_menu)
+        self.admin_key_individual_add = CTkButton(self.root, text='Single Add', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.admin_register_key_menu)
+        self.admin_key_batch_add = CTkButton(self.root, text='Batch Add', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command= self.admin_register_key_batch)
 
         
-        self.admin_tools = CTkButton(self.root, text='Tools', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.show_admin_tool_decision_menu)
-        self.admin_tool_individual_add = CTkButton(self.root, text='Single Add', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.admin_register_tool_menu)
-        self.admin_tool_batch_add = CTkButton(self.root, text='Batch Add', font=("Sora", 15, "bold"), hover_color="#4CAF50",fg_color="#004E42", corner_radius=12,border_color="#4CAF50", border_width=2,width=100,height=50, command=self.admin_register_tool_batch)
+        self.admin_tools = CTkButton(self.root, text='Tools', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_admin_tool_decision_menu)
+        self.admin_tool_individual_add = CTkButton(self.root, text='Single Add', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.admin_register_tool_menu)
+        self.admin_tool_batch_add = CTkButton(self.root, text='Batch Add', font=("Sora", 15), hover_color="#005142",fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.admin_register_tool_batch)
  
         
-        self.admin_item_frame = CTkFrame(master=root, border_color="#004E42", border_width=2, width=250, height=370)
-        self.admin_item_tool_frame = CTkFrame(master=root, border_color="#004E42", border_width=2, width=550, height=400)
+        self.admin_item_frame = CTkFrame(master=root, border_color="#00291d", border_width=2, width=250, height=370)
+        self.admin_item_tool_frame = CTkFrame(master=root, border_color="#00291d", border_width=2, width=550, height=400)
 
         #batch add key frames
         self.admin_key_frame_ulabel = CTkLabel(self.root, text='Unit', font=('Sora', 15))
-        self.admin_key_frame_unit = CTkFrame(master=root, border_color="#004E42", border_width=2, width=170, height=300)
+        self.admin_key_frame_unit = CTkFrame(master=root, border_color="#00291d", border_width=2, width=170, height=300)
         self.admin_key_frame_ubox = CTkTextbox(master=self.admin_key_frame_unit, width =150, height = 280)
         
         
         self.admin_key_frame_blabel = CTkLabel(self.root, text='Barcode', font=('Sora', 15))
-        self.admin_key_frame_barcode = CTkFrame(master=root, border_color="#004E42", border_width=2, width=170, height=300)
+        self.admin_key_frame_barcode = CTkFrame(master=root, border_color="#00291d", border_width=2, width=170, height=300)
         self.admin_key_frame_bbox = CTkTextbox(master=self.admin_key_frame_barcode, width =150, height = 280)
         
         self.admin_key_frame_dlabel = CTkLabel(self.root, text='Description', font=('Sora', 15))
-        self.admin_key_frame_desc = CTkFrame(master=root, border_color="#004E42", border_width=2, width=170, height=300)
+        self.admin_key_frame_desc = CTkFrame(master=root, border_color="#00291d", border_width=2, width=170, height=300)
         self.admin_key_frame_dbox = CTkTextbox(master=self.admin_key_frame_desc, width =150, height = 280)
         
         #batch add tool frames
         self.admin_equipment_frame_nlabel = CTkLabel(self.root, text='Tool Name', font=('Sora', 15))
-        self.admin_equipment_frame_name = CTkFrame(master=root, border_color="#004E42", border_width=2, width=110, height=300)
+        self.admin_equipment_frame_name = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
         self.admin_equipment_frame_nbox = CTkTextbox(master=self.admin_equipment_frame_name, width =90, height = 280)
         
         self.admin_equipment_frame_blabel = CTkLabel(self.root, text='Barcode', font=('Sora', 15))
-        self.admin_equipment_frame_barcode = CTkFrame(master=root, border_color="#004E42", border_width=2, width=110, height=300)
+        self.admin_equipment_frame_barcode = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
         self.admin_equipment_frame_bbox = CTkTextbox(master=self.admin_equipment_frame_barcode, width =90, height = 280)
         
         self.admin_equipment_frame_dalabel = CTkLabel(self.root, text='Date Acquired', font=('Sora', 15))
-        self.admin_equipment_frame_dateacq = CTkFrame(master=root, border_color="#004E42", border_width=2, width=110, height=300)
+        self.admin_equipment_frame_dateacq = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
         self.admin_equipment_frame_dabox = CTkTextbox(master=self.admin_equipment_frame_dateacq, width =90, height = 280)
         
         self.admin_equipment_frame_dclabel = CTkLabel(self.root, text='Date Calibrated', font=('Sora', 15))
-        self.admin_equipment_frame_datecal = CTkFrame(master=root, border_color="#004E42", border_width=2, width=110, height=300)
+        self.admin_equipment_frame_datecal = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
         self.admin_equipment_frame_dcbox = CTkTextbox(master=self.admin_equipment_frame_datecal, width =90, height = 280)
         
         #Key part
@@ -206,11 +208,11 @@ class MainMenu:
         self.admin_item_key_ID_description = CTkLabel(master=self.admin_item_frame, text='Description', font=('Sora', 15))
         self.admin_item_key_ID_description_box = CTkTextbox(master=self.admin_item_frame, width=200, height=180)
 
-        self.admin_item_key_ID_submit = CTkButton(self.root, text='Submit', font=("Sora", 15, "bold"), hover_color="#4CAF50", fg_color="#004E42",bg_color="transparent", corner_radius=12,border_color="#4CAF50", border_width=2,height=50,command=self.show_key_register_end)
+        self.admin_item_key_ID_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=50,command=self.show_key_register_end)
         self.admin_item_key_end = CTkLabel(self.root, text='Key registered!', font=("Sora", 30))
         
-        self.admin_item_key_batch_submit = CTkButton(self.root, text='Submit', font=("Sora", 15, "bold"), hover_color="#4CAF50", fg_color="#004E42",bg_color="transparent", corner_radius=12,border_color="#4CAF50", border_width=2,height=50,command=self.show_key_register_batch_end)
-        self.admin_item_tool_batch_submit = CTkButton(self.root, text='Submit', font=("Sora", 15, "bold"), hover_color="#4CAF50", fg_color="#004E42",bg_color="transparent", corner_radius=12,border_color="#4CAF50", border_width=2,height=50,command=self.show_tool_register_batch_end)
+        self.admin_item_key_batch_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=50,command=self.show_key_register_batch_end)
+        self.admin_item_tool_batch_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=50,command=self.show_tool_register_batch_end)
 
         #Tool part
         self.admin_item_tool_ID_name = CTkLabel(master=self.admin_item_tool_frame, text='Tool Name:', font=('Sora', 15))
@@ -225,7 +227,7 @@ class MainMenu:
         self.admin_item_tool_ID_date_calibrated = CTkLabel(master=self.admin_item_tool_frame, text='Date Calibrated:',font=('Sora', 15))
         self.admin_item_tool_ID_date_calibrated_calendar = CTkDatePicker(self.admin_item_tool_frame)
 
-        self.admin_item_tool_ID_submit = CTkButton(self.root, text='Submit', font=("Sora", 15, "bold"),hover_color="#4CAF50", fg_color="#004E42",corner_radius=12,border_color="#4CAF50", border_width=2,height=50, command=self.show_tool_register_end)
+        self.admin_item_tool_ID_submit = CTkButton(self.root, text='Submit', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.show_tool_register_end)
         self.admin_item_tool_end = CTkLabel(self.root, text='Equipment/s registered!', font=("Sora", 20))
 
         self.admin_item_tool_ID_barcode_entry.bind('<Return>', self.admin_item_tool_batch_add_entry)
@@ -379,10 +381,9 @@ class MainMenu:
                         self.show_borrow_selection_menu()
                 elif valueType == 2:
                         self.not_returned_logs_dict.clear()
-                        self.item_logs_dict.clear()
                         self.show_return_menu()
         else:
-                self.message_box_test = CTkMessagebox(title="ERROR", message="Unsuccessful Login", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Unsuccessful Login", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
 
     def show_borrow_selection_menu(self):
         self.clear_window()
@@ -427,7 +428,7 @@ class MainMenu:
                         self.borrow_text.insert('end', entry_text + '\n')
                         self.to_borrow_dict[ self.borrow_entry.get() ] = temp_list # put inside dictionary
                 else:
-                        self.message_box_test = CTkMessagebox(title="ERROR", message="You can only borrow items once", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50") 
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Item does not exist", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
                         
                 self.borrow_entry.delete(0,'end')                     
         except KeyError:
@@ -456,7 +457,7 @@ class MainMenu:
                 self.current_qlid = ''
                 self.to_borrow_dict.clear()
         else:
-                self.message_box_test = CTkMessagebox(title="ERROR", message="Borrow something to proceed", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Borrow something to proceed", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora',12), fade_in_duration=100)
  
         
     #End of Borrow Section
@@ -469,8 +470,7 @@ class MainMenu:
         self.return_scan_entry.place(relx=0.5, rely=0.4, anchor='center')
         self.return_scan_next.place(relx=0.5, rely=0.6, anchor='center')
 
-    def show_return_menu(self):
-        list_of_items = []    
+    def show_return_menu(self):  
         self.clear_window()
         self.show_main_back()
         self.return_items.place(relx=0.5, rely=0.15, anchor='center')
@@ -483,33 +483,80 @@ class MainMenu:
         res = self.db_actions.get_not_returned_items_db( self.current_qlid )
         if len(res) == 0:
                 print( 'empty')
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Nothing has been borrowed yet", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
         else:
                 for i in res:
-                        list_of_items.clear()
+                        list_of_items = {}
                         employee_borrow_log = ncr_borrow_logs.BorrowLogs()
-                        item_result = self.db_actions.get_return_items_db( i [ 0 ] )
+                        item_result = self.db_actions.get_return_items_db( i [ 0 ] )    #database query 
                         for k in item_result:
                                 ncr_item = borrowed_item.BorrowedItem()
                                 ncr_item.set_item( k[ 0 ], k[ 1 ], k[ 2 ], k[ 3 ])
-                                list_of_items.append( ncr_item )
+                                list_of_items.update( {ncr_item.barcode : ncr_item} )  # this list is now converted into a dictionary 
                         if len(item_result) != 0:
-                                employee_borrow_log.set_borrow_logs_view( i[ 0 ], [ 1 ], i[ 2 ], i[ 3 ], list_of_items)
-                        self.not_returned_logs_dict[ f"{i[ 0 ]}  {i[ 2 ]}" ] = employee_borrow_log
+                                employee_borrow_log.set_borrow_logs_view( i[ 0 ], i[ 1 ], i[ 2 ], i[ 3 ], i[4], list_of_items)
+                                        
+                        self.not_returned_logs_dict[ f"{i[ 0 ]} {i[ 2 ]}" ] = employee_borrow_log
                 self.return_drop_box.configure( values = self.not_returned_logs_dict )
         
     def selected_return_log(self):
         print('hehe')
 
     def show_return_borrow_logs(self, value):
-            
-        print('Test')
+        if not value == 'update':
+                self.return_to_return_list.delete('0.0', 'end')
+                self.to_return_list.clear()
+        self.return_borrow_list.delete("0.0", "end")
+        temp = self.not_returned_logs_dict[ self.selected_log.get()]
+        
+        for i, j in temp.borrow_list.items():
+                if value == 'update' and j.barcode == self.return_items_entry.get():
+                        print('otin')
+                else:
+                        self.return_borrow_list.insert( '0.0', j.name + '\n' )                        
+    
+    def verify_return_entry(self, event = None):
+        res = self.not_returned_logs_dict.get( self.selected_log.get(), 'None' )
+        
+        if not res == 'None':
+                # find the barcode, inputted by the user
+                employee_borrow_details = res.borrow_list.get( self.return_items_entry.get(), 'None' )     
+                if not employee_borrow_details == 'None':
+                        #return_item = ncr_return_logs.ReturnLogs()
+                        #return_item.set_borrow_logs(res.q_lid, res.borrow_type, res.log_id )
+                        #self.to_return_list.append( return_item )
+                        return_item = borrowed_item.BorrowedItem()
+                        return_item.set_item( employee_borrow_details.log_id, employee_borrow_details.item_id, employee_borrow_details.name, employee_borrow_details.barcode )
+                        self.to_return_list.append(return_item)
+                        self.return_to_return_list.insert( '0.0', employee_borrow_details.name + "\n")     
+                        #del res.borrow_list[ self.return_items_entry.get()]      
+                        self.show_return_borrow_logs('update')
+                else:
+                        print( 'Item not in this log' )
+        print('Favorite')
 
 
     def return_end(self):
-        self.clear_window()
-        self.show_main_back()
-
-        self.return_end_text.place(relx=0.5, rely=0.4, anchor='center')
+        if len(self.to_return_list) == 0:
+                print( 'Please add an item to return' )
+        else:                
+                self.clear_window()
+                self.show_main_back()
+                self.return_end_text.place(relx=0.5, rely=0.4, anchor='center')
+                
+                retrieve_log = self.not_returned_logs_dict.get( self.selected_log.get(), 'None' )
+                employee_return_log = ncr_return_logs.ReturnLogs()
+                
+                temp = {}
+                
+                for i in self.to_return_list:
+                        temp.update( { i.barcode : i } )
+                        print( f"{i.barcode}, {i.name}, {retrieve_log.borrow_type}")
+                employee_return_log.set_borrow_logs( retrieve_log.q_lid, retrieve_log.borrow_type, temp, retrieve_log.log_id )
+                print( '===============')
+                print( employee_return_log.return_date)
+                if self.db_actions.return_log_db( employee_return_log ) == True:
+                        print('Beautiful')
     #End of Return Section
 
 #################################################################################################################################################################################################
@@ -528,8 +575,6 @@ class MainMenu:
         self.user_info_search_label.place(relx=0.5, rely=0.2, anchor='center')
         self.user_info_search_entry.place(relx=0.5, rely=0.4, anchor='center')
         self.user_info_search_submit.place(relx=0.5, rely=0.6, anchor='center')
-
-
 
     def show_user_info_credentials(self):
         result = self.db_actions.search_employee( self.user_info_search_entry.get(), self.user_info_search_entry.get())
@@ -555,6 +600,8 @@ class MainMenu:
                 self.user_info_search_status_box.place(relx=0.65, rely=0.5, anchor='center')
                 status = "Active" if result[3] == 1 else "Inactive"
                 self.user_info_search_status_box.insert("0.0", status)
+        else:
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Invalid User", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
 
 
     def show_user_info_register_menu(self):
@@ -591,10 +638,10 @@ class MainMenu:
                         if self.db_actions.register_employee( employee ):
                                 self.user_info_register_submit_label.place(relx=0.5, rely=0.3, anchor='center')
                 else:
-                        self.message_box_test = CTkMessagebox(title="ERROR", message="Please fill up all boxes", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Please fill up all boxes", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
         
         else: # create an error message for existing
-                     self.message_box_test = CTkMessagebox(title="ERROR", message="User already exists", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="User already exists", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
         
         #End of User Information Section
 
@@ -693,9 +740,9 @@ class MainMenu:
                         if self.db_actions.add_item_key( the_key ):
                                 print( "Successful")
                 else:
-                        self.message_box_test = CTkMessagebox(title="ERROR", message="Invalid Key", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Invalid Key", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12))
         else:
-                self.message_box_test = CTkMessagebox(title="ERROR", message="Barcode already exists for this unit", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Barcode already exists for this unit", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
 
     def show_key_register_batch_end(self):
         self.clear_window()
@@ -714,7 +761,8 @@ class MainMenu:
                 
      # error here 
     def admin_item_tool_batch_add_entry(self, event=None):
-        print( 'UNDER INVESTIGATION' )
+        print( 'UNDER INVESTIGATION')
+        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="UNDER INVESTIGATION daw ana kenet", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
         #batch_text = self.admin_item_tool_ID_barcode_entry.get()
         #self.admin_item_tool_ID_batch_box.insert('end', batch_text + '\n')
         #self.admin_item_tool_ID_barcode_entry.delete(0, 'end')
@@ -792,9 +840,9 @@ class MainMenu:
                         if self.db_actions.add_item_equipment( the_equipment ):
                                 print("Successful")
                 else:
-                        self.message_box_test = CTkMessagebox(title="ERROR", message="Invalid Equipment", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Invalid Equipment", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
         else:
-                self.message_box_test = CTkMessagebox(title="ERROR", message="Barcode already exists for this equipment", button_color ="#004E42", border_width = 2, button_hover_color="#4CAF50")
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Barcode already exists for this equipment", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
                 
     def convert_to_date(self, theDate):
         try:
@@ -813,4 +861,8 @@ class MainMenu:
         self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
         
         self.admin_item_tool_end.place(relx=0.5, rely=0.3, anchor='center')
+
+    def logs_reports_menu(self):
+            self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Work in Progress", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+                
 

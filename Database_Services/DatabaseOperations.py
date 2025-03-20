@@ -96,6 +96,7 @@ class DatabaseOperations:
 		try:
 			self.cur.execute( "INSERT INTO BorrowLogs ( q_lid, borrowDate, borrowTime, borrow_type ) VALUES ( ?, ?, ?, ?)", ( the_borrow_log.q_lid, the_borrow_log.borrow_date, the_borrow_log.borrow_time, the_borrow_log.borrow_type) )
 			self.cur.execute( "SELECT * FROM BorrowLogs ORDER BY log_id DESC LIMIT 1" )
+			self.conn.commit()
 			get_val = self.cur.fetchone()
 			print( 'JGH' )
 			if the_borrow_log.borrow_type == 'equipment' and get_val != None: # changes to equipment
@@ -123,6 +124,43 @@ class DatabaseOperations:
 	def borrow_equipment_db(self, logID, equipmentID, name, barcode ):
 		try:
 			self.cur.execute( "INSERT INTO BorrowedEquipment (log_id, equipmentID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, equipmentID, name, barcode ) )
+			self.conn.commit()
+			return True
+		except mariadb.InterfaceError:
+			print( 'Connection Error' )
+		return False
+		     
+	def return_log_db(self, the_return_log):
+		try: 
+			self.cur.execute( "INSERT INTO ReturnLogs ( log_id, q_lid, returnDate, returnTime, borrow_type ) VALUES ( ?, ?, ?, ?, ?)", ( the_return_log.log_id, the_return_log.q_lid, the_return_log.return_date, the_return_log.return_time, the_return_log.borrow_type) )
+			self.conn.commit()
+			if the_return_log.borrow_type == 'equipment': # changes to equipment
+				for list_val, val in the_return_log.return_dict.items():
+					print('equip')
+					if not self.return_equipment_db( the_return_log.log_id, val.item_id, val.name, val.barcode) == True:
+						return False  # handle if db errors
+			elif the_return_log.borrow_type == 'key': # changes to key
+				for list_val, val in the_return_log.return_dict.items():
+					print( 'key' )
+					if not self.return_key_db( the_return_log.log_id, val.item_id, val.name, val.barcode) == True:
+						return False # handle if db errors 
+			return True
+		except mariadb.InterfaceError:
+			print( 'Borrow item connection error' )
+		return False
+		
+	def return_key_db(self, logID, keyID, name, barcode):
+		try:	
+			self.cur.execute( "INSERT INTO ReturnedKeys (log_id, keyID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, keyID, name, barcode ) )
+			self.conn.commit()
+			return True
+		except mariadb.InterfaceError:
+			print( 'Connection Error' )
+		return False
+			
+	def return_equipment_db(self, logID, equipmentID, name, barcode ):
+		try:
+			self.cur.execute( "INSERT INTO ReturnedEquipment (log_id, equipmentID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, equipmentID, name, barcode ) )
 			self.conn.commit()
 			return True
 		except mariadb.InterfaceError:
@@ -179,4 +217,5 @@ class DatabaseOperations:
 		
 		
 		
+	
 	

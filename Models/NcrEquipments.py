@@ -25,3 +25,5 @@ class NcrEquipments:
 		
 	def ncr_equipment_accepted(self):
 		return self.tool_name != '' and self.barcode != ''
+		
+

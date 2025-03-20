@@ -26,7 +26,7 @@ except:
 
 root = CTk()
 root.title("Laboratory Inventory")
-root.geometry("640x480")
+root.geometry("800x480")
 
 
 set_appearance_mode("light")
