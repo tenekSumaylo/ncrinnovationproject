@@ -19,6 +19,7 @@ from datetime import datetime
 from dateutil.parser import ParserError
 import pandas
 
+
 #from PIL import Imageadmin_file_upload_tool
 
 class MainMenu:
@@ -157,6 +158,7 @@ class MainMenu:
         self.admin_register_item_button = CTkButton(self.root, text='Register New Item', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_admin_selection_menu)
         self.admin_log_reports_button = CTkButton(self.root, text="Logs and Reports", font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.logs_reports_menu)
 
+
         #Register Item part
         self.admin_item_label = CTkLabel(self.root, text='What would you like to register?', font=('Sora', 20))
         
@@ -236,6 +238,18 @@ class MainMenu:
         self.admin_item_tool_end = CTkLabel(self.root, text='Equipment/s registered!', font=("Sora", 20))
 
         self.admin_item_tool_ID_barcode_entry.bind('<Return>', self.admin_item_tool_batch_add_entry)
+        
+        
+        #Logs and Reports part
+        self.admin_config_borrowed_items = CTkButton(self.root, text='Borrowed items config ', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.borrow_items_config_menu)
+        
+        self.admin_config_search_ulabel = CTkLabel(self.root, text='Search User ID', font=('Sora', 15))
+        self.admin_config_search_user_entry = CTkEntry(self.root, width=300)
+        self.admin_config_search_user_submit =  CTkButton(self.root, text='Submit', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.admin_rlogs_menu)
+        
+        self.admin_rlogs_label= CTkLabel(self.root, text='Items not Returned', font=('Sora', 15))
+        self.admin_rlogs_box= CTkTextbox(self.root, width=450, height=300)
+        self.admin_rlogs_reset= CTkButton(self.root, text='Reset user returned items', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.reset_all_box)
         
         
         #file upload 
@@ -794,7 +808,7 @@ class MainMenu:
                 file_path = filedialog.askopenfilename()
                 if file_path:
                         print( f"File selected: {file_path} " )
-                get_data = pandas.read_csv(file_path)
+                get_data = pandas.read_csv(file_path, engine='python')
                 print(get_data)
                 for index, row in get_data.iterrows():
                         self.admin_key_frame_ubox.insert('0.0', row['unitID'] + '\n')
@@ -901,6 +915,32 @@ class MainMenu:
         self.admin_item_tool_end.place(relx=0.5, rely=0.3, anchor='center')
 
     def logs_reports_menu(self):
-            self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Work in Progress", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
-                
+            self.clear_window()
+            self.show_main_back()
+            
+            self.admin_config_borrowed_items.place(relx=0.5, rely=0.5, anchor='center')
+   
+    def borrow_items_config_menu(self):
+            self.clear_window()
+            self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+            
+            
+            self.admin_config_search_ulabel.place(relx=0.5,rely=0.2, anchor='center')
+            self.admin_config_search_user_entry.place(relx=0.5, rely=0.4, anchor='center')
+            self.admin_config_search_user_submit.place(relx=0.5, rely=0.6, anchor = 'center')
 
+    def admin_rlogs_menu(self):
+            self.clear_window()
+            self.admin_main_back.place(relx=0.5, rely=0.9, anchor='center')
+            
+            self.admin_rlogs_label.place(relx=0.35, rely=0.1, anchor='center')
+            self.admin_rlogs_box.place(relx=0.35, rely = 0.45, anchor='center')
+            self.admin_rlogs_reset.place(relx=0.8, rely = 0.2, anchor='center')
+            
+    def reset_all_box(self):
+            admin_message_box = CTkMessagebox(master=self.root, title="ERROR", message="Are you sure you want to reset all returned logs of this user?", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100, option_1 = 'Confirm', option_2 = 'Cancel')
+            answer_to_log = admin_message_box.get()
+            if answer_to_log == 'Confirm':
+                message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="All items returned for this user", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+    
+            
