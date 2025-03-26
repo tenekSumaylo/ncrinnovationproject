@@ -40,3 +40,16 @@ cur.close()
 hardware_actions.gpio_clean_all()
 
 #445-0753129
+
+
+#alter table for notes in description that accepts a key that is empty
+# report generation 
+
+"""
+Admin can see unreturned 
+Makita ang tanan transactions na unresolved
+	- for instance wala nauli
+	- clear unreturned status
+	- admin time 
+"""
+###

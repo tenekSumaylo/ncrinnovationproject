@@ -96,7 +96,7 @@ class DatabaseOperations:
 		try:
 			self.cur.execute( "INSERT INTO BorrowLogs ( q_lid, borrowDate, borrowTime, borrow_type ) VALUES ( ?, ?, ?, ?)", ( the_borrow_log.q_lid, the_borrow_log.borrow_date, the_borrow_log.borrow_time, the_borrow_log.borrow_type) )
 			self.cur.execute( "SELECT * FROM BorrowLogs ORDER BY log_id DESC LIMIT 1" )
-			self.conn.commit()
+			#self.conn.commit()
 			get_val = self.cur.fetchone()
 			print( 'JGH' )
 			if the_borrow_log.borrow_type == 'equipment' and get_val != None: # changes to equipment
@@ -133,7 +133,8 @@ class DatabaseOperations:
 	def return_log_db(self, the_return_log):
 		try: 
 			self.cur.execute( "INSERT INTO ReturnLogs ( log_id, q_lid, returnDate, returnTime, borrow_type ) VALUES ( ?, ?, ?, ?, ?)", ( the_return_log.log_id, the_return_log.q_lid, the_return_log.return_date, the_return_log.return_time, the_return_log.borrow_type) )
-			self.conn.commit()
+			#self.conn.commit()
+			print(f"the return type: {the_return_log.borrow_type}")
 			if the_return_log.borrow_type == 'equipment': # changes to equipment
 				for list_val, val in the_return_log.return_dict.items():
 					print('equip')

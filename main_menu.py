@@ -17,8 +17,9 @@ import BorrowedItem as borrowed_item
 from dateutil import parser
 from datetime import datetime
 from dateutil.parser import ParserError
+import pandas
 
-#from PIL import Image
+#from PIL import Imageadmin_file_upload_tool
 
 class MainMenu:
     def __init__(self, root, db_actions, hardware_actions):
@@ -66,6 +67,7 @@ class MainMenu:
 
         # second part main function
         self.borrow_items = CTkLabel(self.root, text='Scan the items you want to borrow')
+        self.borrow_text_label = CTkLabel(self.root, text='Items to be borrowed')
         self.borrow_entry = CTkEntry(self.root, width=180)
         self.borrow_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",  corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.borrow_add_entry)
         self.borrow_continue = CTkButton(self.root, text='Continue', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",  corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.borrow_end)
@@ -89,18 +91,20 @@ class MainMenu:
         self.return_items = CTkLabel(self.root, text='What would you like to return?', font=("Sora", 20))
         self.return_items_entry = CTkEntry(self.root, width=130, placeholder_text='Enter Borrowed items')
         self.return_drop_box = CTkComboBox(self.root, width=280, height=30,command=self.show_return_borrow_logs, variable=self.selected_log)
-        self.return_drop_box.set( 'Select To Return')
         self.return_borrow_list = CTkTextbox(self.root, width=300, height=150)
         self.return_to_return_list = CTkTextbox(self.root, width=300, height=150)
         self.return_continue = CTkButton(self.root, text='Continue',font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.return_end)
-        
+        self.return_pending_label = CTkLabel(self.root, text='Pending Items to be returned', font=("Sora", 10, "bold"))
+        self.return_log_label = CTkLabel(self.root, text='Items to be returned', font=("Sora", 10, "bold"))
         
         #binding for return buttons
         self.return_items_entry.bind('<Return>', self.verify_return_entry )
         self.return_drop_box.bind( "<<ComboboxSelected>>", self.selected_return_log) # Combobox event for that 
-        # End part
+        
         self.return_end_text = CTkLabel(self.root, text='Thank you for returning the items!', font=("Sora", 20))
-
+        # End part
+        
+        
         #User Info Buttons
         #first part
         self.user_info_main = CTkLabel(self.root, text = 'NCR Key-Tool Logging User Information', font=("Sora", 20))
@@ -120,6 +124,7 @@ class MainMenu:
         self.user_info_search_rfid_box = CTkTextbox(self.root, width=300, height=10)
         self.user_info_search_status = CTkLabel(self.root, text='Status:', height=10)
         self.user_info_search_status_box = CTkTextbox(self.root, width=300, height=10)
+        
 
 
         #register part
@@ -232,8 +237,10 @@ class MainMenu:
 
         self.admin_item_tool_ID_barcode_entry.bind('<Return>', self.admin_item_tool_batch_add_entry)
         
-
         
+        #file upload 
+        self.admin_file_upload_key = CTkButton(self.root, text='Upload file', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=30,command=self.file_upload)
+        self.admin_file_upload_tool = CTkButton(self.root, text='Upload file', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=30,command=self.file_upload)
         
        
         
@@ -377,15 +384,17 @@ class MainMenu:
         if not res is None:
                 self.current_qlid = res[ 0 ]
                 if valueType == 1:
-                        self.to_borrow_dict.clear()
                         self.show_borrow_selection_menu()
                 elif valueType == 2:
+                        self.return_drop_box.set( 'Select To Return')
                         self.not_returned_logs_dict.clear()
+                        self.to_return_list.clear()
                         self.show_return_menu()
         else:
                 self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Unsuccessful Login", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
 
     def show_borrow_selection_menu(self):
+        self.to_borrow_dict.clear()
         self.clear_window()
         self.show_main_back()
         self.borrow_keys.place(relx=0.4, rely=0.4, anchor= 'center')
@@ -401,7 +410,8 @@ class MainMenu:
         self.clear_all_entry()
         self.remove_back_buttons()
         self.borrow_back.place(relx=0.5, rely=0.8, anchor="center")
-        self.borrow_items.place(relx=0.2, rely=0.2, anchor="center")
+        self.borrow_items.place(relx=0.2, rely=0.15, anchor="center")
+        self.borrow_text_label.place(relx=0.8, rely=0.15, anchor="center")
         self.borrow_entry.place(relx=0.2, rely=0.4, anchor="center")
         self.borrow_submit.place(relx=0.2, rely=0.72, anchor="center")
         self.borrow_text.place(relx=0.79, rely=0.4, anchor="center")
@@ -479,9 +489,11 @@ class MainMenu:
         self.return_borrow_list.place(relx=0.25, rely=0.5, anchor='center')
         self.return_to_return_list.place(relx=0.75, rely=0.5, anchor='center')
         self.return_continue.place(relx=0.5, rely=0.8, anchor='center')
+        self.return_pending_label.place(relx=0.25, rely=0.31, anchor='center')
+        self.return_log_label.place(relx=0.75, rely=0.31, anchor='center')
         
         res = self.db_actions.get_not_returned_items_db( self.current_qlid )
-        if len(res) == 0:
+        if res == None:
                 print( 'empty')
                 self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Nothing has been borrowed yet", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
         else:
@@ -511,7 +523,7 @@ class MainMenu:
         
         for i, j in temp.borrow_list.items():
                 if value == 'update' and j.barcode == self.return_items_entry.get():
-                        print('otin')
+                        print('norwin')
                 else:
                         self.return_borrow_list.insert( '0.0', j.name + '\n' )                        
     
@@ -539,6 +551,8 @@ class MainMenu:
     def return_end(self):
         if len(self.to_return_list) == 0:
                 print( 'Please add an item to return' )
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Please add an Item to return!", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+
         else:                
                 self.clear_window()
                 self.show_main_back()
@@ -548,15 +562,22 @@ class MainMenu:
                 employee_return_log = ncr_return_logs.ReturnLogs()
                 
                 temp = {}
-                
                 for i in self.to_return_list:
-                        temp.update( { i.barcode : i } )
+                        temp[ i.barcode ] = i
                         print( f"{i.barcode}, {i.name}, {retrieve_log.borrow_type}")
                 employee_return_log.set_borrow_logs( retrieve_log.q_lid, retrieve_log.borrow_type, temp, retrieve_log.log_id )
                 print( '===============')
                 print( employee_return_log.return_date)
+                
+                for k in temp:
+                        print(k)
+                        
+                print('------------')
+                for key in employee_return_log.return_dict:
+                        print(key)
                 if self.db_actions.return_log_db( employee_return_log ) == True:
-                        print('Beautiful')
+                        print('marrr')
+                        self.selected_log.set( '' ) 
     #End of Return Section
 
 #################################################################################################################################################################################################
@@ -695,14 +716,15 @@ class MainMenu:
         self.admin_key_frame_unit.place(relx=0.2, rely=0.45, anchor='center')
         self.admin_key_frame_ubox.place(relx=0.5, rely=0.5, anchor='center')
         
-        self.admin_key_frame_blabel.place(relx=0.5, rely=0.1, anchor='center')
+        self.admin_key_frame_blabel.place(relx=0.8, rely=0.1, anchor='center')
         self.admin_key_frame_barcode.place(relx=0.5, rely=0.45, anchor='center')
         self.admin_key_frame_bbox.place(relx=0.5, rely=0.5, anchor='center') 
         
-        self.admin_key_frame_dlabel.place(relx=0.8, rely=0.1, anchor='center')
+        self.admin_key_frame_dlabel.place(relx=0.5, rely=0.1, anchor='center')
         self.admin_key_frame_desc.place(relx=0.8, rely=0.45, anchor='center')
         self.admin_key_frame_dbox.place(relx=0.5, rely=0.5, anchor='center')
         
+        self.admin_file_upload_key.place(relx=0.5, rely=0.83, anchor='center')
         self.admin_item_key_batch_submit.place(relx=0.6, rely=0.93, anchor='center')
     def admin_register_key_menu(self):
         self.clear_window()
@@ -766,6 +788,22 @@ class MainMenu:
         #batch_text = self.admin_item_tool_ID_barcode_entry.get()
         #self.admin_item_tool_ID_batch_box.insert('end', batch_text + '\n')
         #self.admin_item_tool_ID_barcode_entry.delete(0, 'end')
+        
+    def file_upload(self):
+        try:
+                file_path = filedialog.askopenfilename()
+                if file_path:
+                        print( f"File selected: {file_path} " )
+                get_data = pandas.read_csv(file_path)
+                print(get_data)
+                for index, row in get_data.iterrows():
+                        self.admin_key_frame_ubox.insert('0.0', row['unitID'] + '\n')
+                        self.admin_key_frame_bbox.insert('0.0', row['key_description'] + '\n')
+                        self.admin_key_frame_dbox.insert('0.0', str(row['barcode']) + '\n' )
+        except UnicodeDecodeError:
+                print('Please upload a csv file')
+        except ValueError:
+                print( 'No file chosen' )
     
     def admin_register_tool_batch(self):
         self.clear_window()
@@ -787,7 +825,7 @@ class MainMenu:
         self.admin_equipment_frame_datecal.place(relx=0.8, rely=0.45, anchor='center')
         self.admin_equipment_frame_dcbox.place(relx=0.5, rely=0.5, anchor='center')
         
-        
+        self.admin_file_upload_tool.place(relx=0.5, rely=0.83, anchor='center')
         self.admin_item_tool_batch_submit.place(relx=0.6, rely=0.93, anchor='center')
         
     def admin_register_tool_menu(self):
