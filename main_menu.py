@@ -3,9 +3,9 @@ from CTkDatePicker import CTkDatePicker
 from CTkMessagebox import CTkMessagebox
 
 import sys
-sys.path.append('/home/keyloggerpi/ncr_innovation_project/PythonProject/Hardware_Services')
-sys.path.append('/home/keyloggerpi/ncr_innovation_project/PythonProject/Database_Services')
-sys.path.append('/home/keyloggerpi/ncr_innovation_project/PythonProject/Models')
+sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Hardware_Services')
+sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Database_Services')
+sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Models')
 import NcrEquipments as ncr_equipments
 import NcrKeys as ncr_keys
 import NcrEmployees as ncr_employees

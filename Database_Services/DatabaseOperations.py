@@ -33,7 +33,7 @@ class DatabaseOperations:
 	
 	def add_item_key(self, the_key): 
 		if self.search_key( the_key.barcode ) != True:
-			self.cur.execute( "INSERT INTO NcrKeys ( unitID, key_description,barcode ) VALUES ( ?, ?, ?)", 
+			self.cur.execute( "INSERT INTO NcrKeys ( unit_ID, keyDescription,barcode ) VALUES ( ?, ?, ?)", 
 							( the_key.unit, the_key.description, the_key.barcode )) 
 			self.conn.commit()
 		return True
@@ -48,7 +48,7 @@ class DatabaseOperations:
 		
 	def add_item_equipment(self, the_equipment):
 		if self.search_equipment( the_equipment.barcode ) != True:
-			self.cur.execute( "INSERT INTO NcrEquipments ( itemDescription, toolName, barcode, dateOfAcquisition, calibrationDate ) VALUES ( ?, ?, ?, ?, ?)", 
+			self.cur.execute( "INSERT INTO NcrEquipments ( itemDescription, toolName, barcode, date_of_acquisition, calibration_date ) VALUES ( ?, ?, ?, ?, ?)", 
 							( the_equipment.description, the_equipment.tool_name, the_equipment.barcode, the_equipment.date_of_acquisition, the_equipment.calibration_date ))
 			self.conn.commit()
 		return True
@@ -114,7 +114,7 @@ class DatabaseOperations:
 		
 	def borrow_key_db(self, logID, keyID, name, barcode):
 		try:	
-			self.cur.execute( "INSERT INTO BorrowedKeys (log_id, keyID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, keyID, name, barcode ) )
+			self.cur.execute( "INSERT INTO BorrowedKey (log_id, key_ID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, keyID, name, barcode ) )
 			self.conn.commit()
 			return True
 		except mariadb.InterfaceError:
@@ -152,7 +152,7 @@ class DatabaseOperations:
 		
 	def return_key_db(self, logID, keyID, name, barcode):
 		try:	
-			self.cur.execute( "INSERT INTO ReturnedKeys (log_id, keyID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, keyID, name, barcode ) )
+			self.cur.execute( "INSERT INTO ReturnedKey (log_id, key_ID, name, barcode) VALUES ( ?, ?, ?, ? )", (logID, keyID, name, barcode ) )
 			self.conn.commit()
 			return True
 		except mariadb.InterfaceError:
@@ -201,7 +201,7 @@ class DatabaseOperations:
 			
 	def get_return_items_db(self, log_id):
 		# this checks for both borrowed keys or borrowed items
-		self.cur.execute( "SELECT * FROM BorrowedKeys WHERE log_id = ?", (log_id,) )
+		self.cur.execute( "SELECT * FROM BorrowedKey WHERE log_id = ?", (log_id,) )
 		res = self.cur.fetchall()
 		if len(res) != 0:
 			return res
