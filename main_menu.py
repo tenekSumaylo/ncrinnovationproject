@@ -1,6 +1,7 @@
 from customtkinter import *
 from CTkDatePicker import CTkDatePicker
 from CTkMessagebox import CTkMessagebox
+from CTkListbox import CTkListbox
 
 import sys
 sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Hardware_Services')
@@ -35,6 +36,7 @@ class MainMenu:
         self.to_borrow_dict = {}
         self.not_returned_logs_dict = {}
         self.to_return_list = []
+        self.clear_not_returned_dict = {}
         
         #instance member
         self.selected_log = StringVar()
@@ -72,7 +74,7 @@ class MainMenu:
         self.borrow_entry = CTkEntry(self.root, width=180)
         self.borrow_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",  corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.borrow_add_entry)
         self.borrow_continue = CTkButton(self.root, text='Continue', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",  corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.borrow_end)
-        self.borrow_text = CTkTextbox(self.root, width=250, height=200)
+        self.borrow_text = CTkListbox(self.root, width=250, height=200)
 
         # End part
         self.borrow_end_text = CTkLabel(self.root, text='Thank you!, Please return the items soon', font=("Sora", 20))
@@ -241,14 +243,12 @@ class MainMenu:
         
         
         #Logs and Reports part
-        self.admin_config_borrowed_items = CTkButton(self.root, text='Borrowed items config ', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.borrow_items_config_menu)
-        
+        self.admin_config_borrowed_items = CTkButton(self.root, text='Borrowed items config ', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.borrow_items_config_menu)        
         self.admin_config_search_ulabel = CTkLabel(self.root, text='Search User ID', font=('Sora', 15))
         self.admin_config_search_user_entry = CTkEntry(self.root, width=300)
-        self.admin_config_search_user_submit =  CTkButton(self.root, text='Submit', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.admin_rlogs_menu)
-        
+        self.admin_config_search_user_submit =  CTkButton(self.root, text='Submit', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command= lambda: self.login_authentication(3))
         self.admin_rlogs_label= CTkLabel(self.root, text='Items not Returned', font=('Sora', 15))
-        self.admin_rlogs_box= CTkTextbox(self.root, width=450, height=300)
+        self.admin_rlogs_box= CTkListbox(self.root, width=450, height=300)
         self.admin_rlogs_reset= CTkButton(self.root, text='Reset user returned items', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.reset_all_box)
         
         
@@ -257,9 +257,6 @@ class MainMenu:
         self.admin_file_upload_tool = CTkButton(self.root, text='Upload file', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=30,command=self.file_upload)
         
        
-        
-        
-        
 #########################################################################################################################################################################################################
 
 
@@ -280,7 +277,7 @@ class MainMenu:
     def clear_all_entry(self):
         # borrow entries clear 
         # note: values in deleteion vary, if entry value starts at 0 else text box value starts at 1 
-        self.borrow_text.delete("0.0", "end")
+        self.borrow_text.delete(0, "end")
         self.borrow_scan_entry.delete(0, 'end')
         self.borrow_entry.delete(0, 'end')
         
@@ -390,10 +387,12 @@ class MainMenu:
         self.borrow_scan_next.place(relx=0.5, rely=0.6, anchor= 'center')
         
     def login_authentication(self, valueType = 0, event = None):
-        if valueType == 1:
+        if valueType == 1 :
                 res = self.db_actions.search_employee( self.borrow_scan_entry.get(), self.borrow_scan_entry.get())
-        else:
+        elif valueType == 2:
                 res = self.db_actions.search_employee( self.return_scan_entry.get(), self.return_scan_entry.get())                
+        else:
+                res = self.db_actions.search_employee( self.admin_config_search_user_entry.get(), self.admin_config_search_user_entry.get())
 
         if not res is None:
                 self.current_qlid = res[ 0 ]
@@ -404,6 +403,9 @@ class MainMenu:
                         self.not_returned_logs_dict.clear()
                         self.to_return_list.clear()
                         self.show_return_menu()
+                elif valueType == 3:
+                        self.clear_not_returned_dict.clear()
+                        self.admin_rlogs_menu()
         else:
                 self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Unsuccessful Login", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
 
@@ -440,13 +442,10 @@ class MainMenu:
                         temp = self.db_actions.get_equipment_details( self.borrow_entry.get())
                         if not temp is None:
                                 temp_list = [ temp[ 2 ], temp[ 0 ], temp[ 3 ] ]
-                        print( 'this is equipment' )
                 elif self.indicator == 2:
                         temp = self.db_actions.get_key_details( self.borrow_entry.get() )
                         if not temp is None:
                                 temp_list = [ temp[ 1 ], temp[ 0 ], temp[ 3 ] ]
-                        print( 'this is key' )
-                        
                 if not temp is None and self.to_borrow_dict.get( self.borrow_entry.get(), 'False') == 'False':
                         entry_text = temp_list[ 0 ]
                         self.borrow_text.insert('end', entry_text + '\n')
@@ -528,15 +527,15 @@ class MainMenu:
     def selected_return_log(self):
         print('hehe')
 
-    def show_return_borrow_logs(self, value):
+    def show_return_borrow_logs(self, value = ''):
         if not value == 'update':
                 self.return_to_return_list.delete('0.0', 'end')
                 self.to_return_list.clear()
         self.return_borrow_list.delete("0.0", "end")
-        temp = self.not_returned_logs_dict[ self.selected_log.get()]
+        temp = self.not_returned_logs_dict[ self.selected_log.get() ] # assign to temp the borrow log
         
         for i, j in temp.borrow_list.items():
-                if value == 'update' and j.barcode == self.return_items_entry.get():
+                if value == 'update' and any( j.barcode == x.barcode for x in self.to_return_list ): # check if value is update and check if the an item is in scanned return list
                         print('norwin')
                 else:
                         self.return_borrow_list.insert( '0.0', j.name + '\n' )                        
@@ -546,20 +545,20 @@ class MainMenu:
         
         if not res == 'None':
                 # find the barcode, inputted by the user
-                employee_borrow_details = res.borrow_list.get( self.return_items_entry.get(), 'None' )     
+                employee_borrow_details = res.borrow_list.get( self.return_items_entry.get(), 'None' )       # get the borrow list dict 
                 if not employee_borrow_details == 'None':
-                        #return_item = ncr_return_logs.ReturnLogs()
-                        #return_item.set_borrow_logs(res.q_lid, res.borrow_type, res.log_id )
-                        #self.to_return_list.append( return_item )
                         return_item = borrowed_item.BorrowedItem()
                         return_item.set_item( employee_borrow_details.log_id, employee_borrow_details.item_id, employee_borrow_details.name, employee_borrow_details.barcode )
-                        self.to_return_list.append(return_item)
-                        self.return_to_return_list.insert( '0.0', employee_borrow_details.name + "\n")     
-                        #del res.borrow_list[ self.return_items_entry.get()]      
+                        print(self.to_return_list)
+                        if not any( x.barcode == self.return_items_entry.get() for x in self.to_return_list): 
+                                self.to_return_list.append(return_item)
+                                self.return_to_return_list.insert( '0.0', employee_borrow_details.name + "\n")
+                                print('appended')
+                        else:
+                                print('Item already logged')
                         self.show_return_borrow_logs('update')
                 else:
                         print( 'Item not in this log' )
-        print('Favorite')
 
 
     def return_end(self):
@@ -646,17 +645,13 @@ class MainMenu:
         self.user_info_register_label.place(relx=0.5, rely=0.2, anchor='center')
         self.user_info_register_first_name_label.place(relx=0.5, rely=0.3, anchor='center')
         self.user_info_register_first_name_entry.place(relx=0.5, rely=0.34, anchor='center')
-
         self.user_info_register_label.place(relx=0.5, rely=0.2, anchor='center')
         self.user_info_register_last_name_label.place(relx=0.5, rely=0.4, anchor='center')
         self.user_info_register_last_name_entry.place(relx=0.5, rely=0.44, anchor='center')
-
         self.user_info_register_qlid_label.place(relx=0.5, rely=0.5, anchor='center')
         self.user_info_register_qlid_entry.place(relx=0.5, rely=0.54, anchor='center')
-
         self.user_info_register_rfid_label.place(relx=0.5, rely=0.6, anchor='center')
         self.user_info_register_rfid_entry.place(relx=0.5, rely=0.64, anchor='center')
-
         self.user_info_register_submit.place(relx=0.5, rely=0.8, anchor= 'center')
 
     def user_registered_end(self):
@@ -687,7 +682,6 @@ class MainMenu:
     def show_admin_login(self):
         self.clear_window()
         self.show_main_back()
-
         self.admin_scan_id.place(relx=0.5, rely=0.2, anchor='center')
         self.admin_scan_entry.place(relx=0.5, rely=0.4, anchor='center')
         self.admin_scan_next.place(relx=0.5, rely=0.6, anchor='center')
@@ -915,32 +909,44 @@ class MainMenu:
         self.admin_item_tool_end.place(relx=0.5, rely=0.3, anchor='center')
 
     def logs_reports_menu(self):
-            self.clear_window()
-            self.show_main_back()
-            
-            self.admin_config_borrowed_items.place(relx=0.5, rely=0.5, anchor='center')
+        self.clear_window()
+        self.show_main_back()
+        self.admin_config_borrowed_items.place(relx=0.5, rely=0.5, anchor='center')
    
     def borrow_items_config_menu(self):
-            self.clear_window()
-            self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
-            
-            
-            self.admin_config_search_ulabel.place(relx=0.5,rely=0.2, anchor='center')
-            self.admin_config_search_user_entry.place(relx=0.5, rely=0.4, anchor='center')
-            self.admin_config_search_user_submit.place(relx=0.5, rely=0.6, anchor = 'center')
+        self.clear_window()
+        self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+        self.admin_config_search_ulabel.place(relx=0.5,rely=0.2, anchor='center')
+        self.admin_config_search_user_entry.place(relx=0.5, rely=0.4, anchor='center')
+        self.admin_config_search_user_submit.place(relx=0.5, rely=0.6, anchor = 'center')
 
     def admin_rlogs_menu(self):
-            self.clear_window()
-            self.admin_main_back.place(relx=0.5, rely=0.9, anchor='center')
-            
-            self.admin_rlogs_label.place(relx=0.35, rely=0.1, anchor='center')
-            self.admin_rlogs_box.place(relx=0.35, rely = 0.45, anchor='center')
-            self.admin_rlogs_reset.place(relx=0.8, rely = 0.2, anchor='center')
+        self.admin_rlogs_box.delete(0, END)
+        self.clear_window()
+        self.admin_main_back.place(relx=0.5, rely=0.9, anchor='center')
+        self.admin_rlogs_label.place(relx=0.35, rely=0.1, anchor='center')
+        self.admin_rlogs_box.place(relx=0.35, rely = 0.45, anchor='center')
+        self.admin_rlogs_reset.place(relx=0.8, rely = 0.2, anchor='center')
+        res = self.db_actions.get_employee_unreturned_items(self.current_qlid)
+        k = 0
+        if not res == None:
+                self.clear_not_returned_dict = res
+                for i in res:
+                        self.admin_rlogs_box.insert(k, i)
+                        k = k + 1
+                print(res)
+        else:
+                print( 'Not unreturned' )
+                
+        
             
     def reset_all_box(self):
-            admin_message_box = CTkMessagebox(master=self.root, title="ERROR", message="Are you sure you want to reset all returned logs of this user?", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100, option_1 = 'Confirm', option_2 = 'Cancel')
-            answer_to_log = admin_message_box.get()
-            if answer_to_log == 'Confirm':
+        admin_message_box = CTkMessagebox(master=self.root, title="ERROR", message="Are you sure you want to reset all returned logs of this user?", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100, option_1 = 'Confirm', option_2 = 'Cancel')
+        answer_to_log = admin_message_box.get()
+        if answer_to_log == 'Confirm':
                 message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="All items returned for this user", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
-    
+                for key, value in self.clear_not_returned_dict.items():
+                        for k in value:
+                                print( k )
+        
             

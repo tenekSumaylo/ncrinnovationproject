@@ -12,7 +12,7 @@ import BorrowLogs as borrow
 #initialize services
 try:
 	conn = mariadb.connect(
-	user = "ncr",
+	user = "ncr", 
 	password = "1234",
 	host = "127.0.0.1",
 	port = 3306,
@@ -35,15 +35,9 @@ try:
 	hardware_actions.gpio_clean_all()
 except:
 	print( 'Error in initializing' )
-
-
-
 #445-0753129
-
-
 #alter table for notes in description that accepts a key that is empty
 # report generation 
-
 """
 Admin can see unreturned 
 Makita ang tanan transactions na unresolved
