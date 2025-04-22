@@ -219,6 +219,7 @@ class DatabaseOperations:
 			for element in borrow_result:
 				if not element in return_result:
 					temp_list.append( element )
+					print( 'appended get' )
 				else:
 					print('Already here')
 			return temp_list
@@ -233,7 +234,7 @@ class DatabaseOperations:
 			print( 'Database error in fetching database in borrow key' )
 		"""
 		
-	def get_all_not_returned_equipments(self, log_id, item_id):
+	def get_all_not_returned_equipments(self, log_id):
 		self.cur.execute( "SELECT * FROM BorrowedEquipment WHERE log_id = ?", ( log_id, ) )
 		borrow_result = self.cur.fetchall()
 		self.cur.execute( "SELECT * FROM ReturnedEquipment WHERE log_id = ?", (log_id, ) )
@@ -246,6 +247,7 @@ class DatabaseOperations:
 			for element in borrow_result:
 				if not element in return_result:
 					temp_list.append( element )
+					print( 'appended get' )
 				else:
 					print('Already here')
 			return temp_list
@@ -279,6 +281,20 @@ class DatabaseOperations:
 			 return res
 		except mariadb.InterfaceError:
 			print( 'Database noir noir Error' )
+	
+	def search_return_log_dict(self, q_lid):
+		try:
+			res = self.search_return_log( q_lid )
+			if res != None:
+				log_dict = {}
+				for log in res:
+					log_dict[ log[ 0 ] ] = log
+				return log_dict
+			return {}
+				
+		except mariadb.InterfaceError:
+			print( 'Database connection loss' )
+		
 
 	def get_employee_unreturned_items(self, q_lid):
 		try:

@@ -30,7 +30,7 @@ class MainMenu:
         
         #initialize instance members, ready for dependency injection however this does not support dependency injection
         self.db_actions = db_actions
-        self.hardware_actions = hardware_actions
+        self.hdw_actions = hardware_actions
         
         # initialize instance list
         self.to_borrow_dict = {}
@@ -243,13 +243,23 @@ class MainMenu:
         
         
         #Logs and Reports part
-        self.admin_config_borrowed_items = CTkButton(self.root, text='Borrowed items config ', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.borrow_items_config_menu)        
+        self.admin_config_borrowed_items = CTkButton(self.root, text='Borrowed Items Config ', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.borrow_items_config_menu)        
+        self.admin_config_print_logs = CTkButton(self.root, text='Print Logs', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12, border_color="#005142", border_width=2,height=50, command=self.return_logs_config_menu)
+        
+        
+        #Borrowed items part
         self.admin_config_search_ulabel = CTkLabel(self.root, text='Search User ID', font=('Sora', 15))
         self.admin_config_search_user_entry = CTkEntry(self.root, width=300)
         self.admin_config_search_user_submit =  CTkButton(self.root, text='Submit', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command= lambda: self.login_authentication(3))
         self.admin_rlogs_label= CTkLabel(self.root, text='Items not Returned', font=('Sora', 15))
         self.admin_rlogs_box= CTkListbox(self.root, width=450, height=300)
         self.admin_rlogs_reset= CTkButton(self.root, text='Reset user returned items', font=("Sora", 15),hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,height=50, command=self.reset_all_box)
+        
+        #Print Logs part
+        self.print_logs_label = CTkLabel(self.root, text='Set Range to print', font=("Sora",20))
+        self.print_logs_start_date = CTkDatePicker(self.root)
+        self.print_logs_end_date =  CTkDatePicker(self.root)
+        self.print_logs_button = CTkButton(self.root, text='Print as PDF', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12, border_color="#005142", border_width=2,height=50, command=self.print_to_pdf)
         
         
         #file upload 
@@ -413,18 +423,24 @@ class MainMenu:
         self.to_borrow_dict.clear()
         self.clear_window()
         self.show_main_back()
+        self.hdw_actions.deactivate_stepper()
+        
+        
         self.borrow_keys.place(relx=0.4, rely=0.4, anchor= 'center')
         self.borrow_tools.place(relx=0.6, rely=0.4, anchor= 'center')
 
     def show_borrow_menu(self, valueType): # use this command to change position of buttons
         if valueType == 'equipments':
                 self.indicator = 1
+                self.hdw_actions.activate_stepper()
         elif valueType == 'keys':
                 self.indicator = 2
+                self.hdw_actions.employee_verified()
         
         self.clear_window()
         self.clear_all_entry()
         self.remove_back_buttons()
+        
         self.borrow_back.place(relx=0.5, rely=0.8, anchor="center")
         self.borrow_items.place(relx=0.2, rely=0.15, anchor="center")
         self.borrow_text_label.place(relx=0.8, rely=0.15, anchor="center")
@@ -474,7 +490,10 @@ class MainMenu:
                 
                 self.clear_window()
                 self.show_main_back()
+                if self.indicator == 1:
+                        self.hdw_actions.deactivate_stepper()
                 self.borrow_end_text.place(relx=0.5, rely=0.4, anchor='center')
+                
                 
                 # clear all values needed
                 self.current_qlid = ''
@@ -910,8 +929,9 @@ class MainMenu:
 
     def logs_reports_menu(self):
         self.clear_window()
-        self.show_main_back()
-        self.admin_config_borrowed_items.place(relx=0.5, rely=0.5, anchor='center')
+        self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+        self.admin_config_borrowed_items.place(relx=0.5, rely=0.3, anchor='center')
+        self.admin_config_print_logs.place(relx=0.5, rely = 0.55, anchor='center')
    
     def borrow_items_config_menu(self):
         self.clear_window()
@@ -941,12 +961,34 @@ class MainMenu:
         
             
     def reset_all_box(self):
+        log_result = self.db_actions.search_return_log_dict(self.current_qlid)
+        
         admin_message_box = CTkMessagebox(master=self.root, title="ERROR", message="Are you sure you want to reset all returned logs of this user?", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100, option_1 = 'Confirm', option_2 = 'Cancel')
         answer_to_log = admin_message_box.get()
-        if answer_to_log == 'Confirm':
+        if answer_to_log == 'Confirm' and len(self.clear_not_returned_dict.keys()) != 0:
                 message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="All items returned for this user", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
                 for key, value in self.clear_not_returned_dict.items():
                         for k in value:
-                                print( k )
+                                return_log = log_result.get(k.log_id, 'None')
+                                if not return_log == 'None':
+                                        if return_log[ 4 ] == 'key':
+                                                self.db_actions.return_key_db( k.log_id, k.item_id, k.name, k.barcode )
+                                        elif return_log[ 4 ] == 'equipment':
+                                                self.db_actions.return_equipment_db( k.log_id, k.item_id, k.name, k.barcode )
+                self.admin_rlogs_box.delete(0, END )
+        else:
+                print( 'Not to return' )
+
+    def return_logs_config_menu (self):
+        self.clear_window()
+        self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+        
+        self.print_logs_label.place(relx=0.5, rely=0.2, anchor='center') 
+        self.print_logs_start_date.place(relx=0.3,rely=0.4, anchor='center') 
+        self.print_logs_end_date.place(relx=0.7,rely=0.4, anchor='center')
+        self.print_logs_button.place(relx=0.5, rely=0.6, anchor='center')
+
+    def print_to_pdf(self):
+        print("yeah put the export thing here")
         
             

@@ -17,13 +17,15 @@ class CTkDatePicker(ctk.CTkFrame):
         
         super().__init__(master, **kwargs)
 
-        self.date_entry = ctk.CTkEntry(self)
+        self.date_entry = ctk.CTkEntry(self, placeholder_text="MM/DD/YYYY")
         self.date_entry.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         
         self.calendar_button = ctk.CTkButton(self, text="▼", width=20, command=self.open_calendar)
         self.calendar_button.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
 
         self.popup = None
+        self.month_popup = None
+        self.year_popup = None
         self.selected_date = None
         self.date_format = "%m/%d/%Y"
         self.allow_manual_input = True  
@@ -62,8 +64,8 @@ class CTkDatePicker(ctk.CTkFrame):
 
     def build_calendar(self):
         # Dark Mode Text = White | Light Mode Text = Black...
-        text_color = 'black' if ctk.get_appearance_mode() == 'Light' else 'white'
-        
+        text_color = 'black' if ctk.get_appearance_mode() == 'Light' else 'white'  
+         
         if hasattr(self, 'calendar_frame'):
             self.calendar_frame.destroy()
 
@@ -72,13 +74,19 @@ class CTkDatePicker(ctk.CTkFrame):
 
         # Month and Year Selector
         month_label = ctk.CTkLabel(self.calendar_frame, text=f"{calendar.month_name[self.current_month]}, {self.current_year}")
-        month_label.grid(row=0, column=1, columnspan=5)
+        month_label.grid(row=0, column=2, columnspan=3)
 
         prev_month_button = ctk.CTkButton(self.calendar_frame, text="<", width=5, command=self.prev_month)
         prev_month_button.grid(row=0, column=0)
 
         next_month_button = ctk.CTkButton(self.calendar_frame, text=">", width=5, command=self.next_month)
         next_month_button.grid(row=0, column=6)
+        
+        pick_month_button = ctk.CTkButton(self.calendar_frame, text="▼", width=5, command=self.pick_month)
+        pick_month_button.grid(row=0, column=1)
+        
+        pick_year_button = ctk.CTkButton(self.calendar_frame, text="▼", width=5, command=self.pick_year)
+        pick_year_button.grid(row=0, column=5)
 
         # Days of the week header
         days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -103,11 +111,27 @@ class CTkDatePicker(ctk.CTkFrame):
                     btn.grid(row=week, column=day_col)
                     day += 1
 
-    def prev_month(self):
+    def next_month(self):
+        text_color = 'black' if ctk.get_appearance_mode() == 'Light' else 'white'
         """
         Navigate to the previous month in the calendar.
 
         Updates the calendar display to show the previous month's days.
+        Adjusts the year if necessary.
+        """
+        if self.current_month == 12:
+            self.current_month = 1
+            self.current_year += 1
+        else:
+            self.current_month += 1
+        self.build_calendar()
+        
+        
+    def prev_month(self):
+        """
+        Navigate to the next month in the calendar.
+
+        Updates the calendar display to show the next month's days.
         Adjusts the year if necessary.
         """
         
@@ -118,21 +142,57 @@ class CTkDatePicker(ctk.CTkFrame):
             self.current_month -= 1
         self.build_calendar()
 
-    def next_month(self):
-        """
-        Navigate to the next month in the calendar.
-
-        Updates the calendar display to show the next month's days.
-        Adjusts the year if necessary.
-        """
+    def pick_month(self):
+        text_color = 'black' if ctk.get_appearance_mode() == 'Light' else 'white' 
         
-        if self.current_month == 12:
-            self.current_month = 1
-            self.current_year += 1
-        else:
-            self.current_month += 1
-        self.build_calendar()
-
+        if self.month_popup is not None:
+            self.month_popup.destroy()
+            
+        self.month_popup = ctk.CTkToplevel(self)
+        self.month_popup.title("M")
+        self.month_popup.geometry("105x120")
+        self.month_popup.resizable(False, False)
+        
+        self.month_popup.after(500, lambda: self.month_popup.focus())   
+        
+        pick_month_label = ctk.CTkLabel(self.month_popup, text="Select the month")
+        pick_month_label.grid(row=0, column=0, columnspan=4)
+        
+        months_of_year = 12
+        month = 1
+        for week in range(2, 8):
+            for day_col in range(4):
+                if month > months_of_year:
+                    lbl = ctk.CTkLabel(self.month_popup, text="")
+                    lbl.grid(row=week, column=day_col)
+                else:
+                    month_btn = ctk.CTkButton(self.month_popup, text=str(month), width=3, command=lambda month=month: self.select_month(month), fg_color="transparent", text_color=text_color)
+                    month_btn.grid(row=week, column=day_col)
+                    month += 1
+        
+    def pick_year(self):
+        text_color = 'black' if ctk.get_appearance_mode() == 'Light' else 'white' 
+             
+        if self.year_popup is not None:
+            self.year_popup.destroy()
+        self.year_popup = ctk.CTkToplevel(self)
+        self.year_popup.title("Year")
+        self.year_popup.geometry("140x100")
+        self.year_popup.resizable(False, False)
+        
+        self.year_popup.after(500, lambda: self.year_popup.focus())
+        
+        pick_year_label = ctk.CTkLabel(self.year_popup, text="Enter a year")
+        pick_year_label.grid(row=0, column=0, columnspan=4)
+        
+        self.year_entry = ctk.CTkEntry(self.year_popup, placeholder_text=f"{self.current_year}")
+        self.year_entry.grid(row=1, column=1)
+        
+        
+        year_btn = ctk.CTkButton (self.year_popup, text=">", width=3, command= self.select_year, text_color=text_color)
+        year_btn.grid(row=2, column = 1)
+        
+        
     def select_date(self, day):
         """
         Select a date from the calendar.
@@ -153,8 +213,18 @@ class CTkDatePicker(ctk.CTkFrame):
             self.date_entry.configure(state='disabled')
         self.popup.destroy()
         self.popup = None
-
         
+    def select_month(self, month):
+        self.current_month = month
+        self.month_popup.destroy()
+        self.build_calendar()
+        
+    def select_year(self):
+        self.current_year = int(self.year_entry.get())
+        self.year_popup.destroy()
+        self.build_calendar()
+        
+    
     def get_date(self):
         """
         Get the currently selected date as a string.
@@ -180,3 +250,4 @@ class CTkDatePicker(ctk.CTkFrame):
             self.date_entry.configure(state='disabled')
         else:
             self.date_entry.configure(state='normal')
+

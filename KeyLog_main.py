@@ -17,6 +17,7 @@ try:
 	host = "127.0.0.1",
 	port = 3306,
 	database = "ncrinnovationproject")
+	
 #initialization of objects for hardware and db operations
 	cur = conn.cursor()
 	hardware_actions = hardware_operations.HardwareActions()
@@ -24,6 +25,7 @@ try:
 	root = CTk()
 	root.title("Laboratory Inventory")
 	root.geometry("800x480")
+	root.attributes('-fullscreen', True)
 
 	set_appearance_mode("light")
 
@@ -33,6 +35,7 @@ try:
 	conn.close()
 	cur.close()
 	hardware_actions.gpio_clean_all()
+	
 except:
 	print( 'Error in initializing' )
 #445-0753129
