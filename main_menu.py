@@ -118,6 +118,7 @@ class MainMenu:
         self.user_info_search_label = CTkLabel(self.root, text='Enter your QLID or RFID', font=("Sora", 20))
         self.user_info_search_entry = CTkEntry(self.root, width=200)
         self.user_info_search_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_user_info_credentials)
+        
 
         self.user_info_search_name = CTkLabel(self.root, text='Name:')
         self.user_info_search_name_box = CTkTextbox(self.root, width=300, height=10)
@@ -148,7 +149,7 @@ class MainMenu:
         self.user_info_register_submit_label = CTkLabel(self.root, text='User registered!', font=("Sora", 30))
         self.user_info_register_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command= self.user_registered_end)
 
-
+#############################################
         #Admin part
         #first part
         self.admin_scan_id = CTkLabel(self.root, text='Admin Password', font=("Sora", 20))
@@ -316,9 +317,19 @@ class MainMenu:
         self.admin_item_key_ID_description_box.delete("0.0", "end")
         
         # admin item entries clear
-
+        self.admin_scan_entry.delete(0,'end')
         self.admin_item_tool_ID_date_calibrated_calendar.date_entry.delete(0, 'end')
         self.admin_item_tool_ID_date_acquired_calendar.date_entry.delete(0,'end')
+        self.admin_item_key_ID_entry.delete(0, 'end')
+        self.admin_item_tool_ID_barcode_entry.delete(0, 'end')
+        self.admin_item_key_ID_description_box.delete("0.0", "end")
+        self.admin_item_tool_ID_name_entry.delete(0, 'end')
+        self.admin_item_tool_ID_barcode_entry.delete(0, 'end')
+        self.admin_item_tool_ID_description_box.delete("0.0", "end")
+        
+        self.admin_config_search_user_entry
+        self.print_logs_start_date.date_entry.delete(0,'end')
+        self.print_logs_end_date.date_entry.delete(0, 'end')
         
 
 #################################################################################################################################################################################################
@@ -423,7 +434,7 @@ class MainMenu:
         self.to_borrow_dict.clear()
         self.clear_window()
         self.show_main_back()
-        self.hdw_actions.deactivate_stepper()
+        self.hdw_actions.stepper_off()
         
         
         self.borrow_keys.place(relx=0.4, rely=0.4, anchor= 'center')
@@ -432,10 +443,11 @@ class MainMenu:
     def show_borrow_menu(self, valueType): # use this command to change position of buttons
         if valueType == 'equipments':
                 self.indicator = 1
-                self.hdw_actions.activate_stepper()
+                self.hdw_actions.stepper_on()
         elif valueType == 'keys':
                 self.indicator = 2
-                self.hdw_actions.employee_verified()
+                # ~ self.message_box_test = CTkMessagebox(master=self.root, title="Information", message="Opening Keybox", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+                self.hdw_actions.solenoid_on()
         
         self.clear_window()
         self.clear_all_entry()
@@ -456,6 +468,7 @@ class MainMenu:
                 
                 if self.indicator == 1:
                         temp = self.db_actions.get_equipment_details( self.borrow_entry.get())
+                        self.hdw_actions.deactivate_stepper()
                         if not temp is None:
                                 temp_list = [ temp[ 2 ], temp[ 0 ], temp[ 3 ] ]
                 elif self.indicator == 2:
@@ -707,6 +720,7 @@ class MainMenu:
 
     def show_admin_menu(self):
         self.clear_window()
+        self.clear_all_entry()
         self.show_main_back()
 
         self.admin_label.place(relx=0.5, rely=0.2, anchor='center')

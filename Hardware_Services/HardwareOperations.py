@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 #import asyncio
 import time
 from time import sleep
+from threading import Thread
 
 class HardwareActions:
 	def __init__(self):
@@ -27,6 +28,9 @@ class HardwareActions:
 		sleep(1.5)
 		self.deactivate_solenoid_one()
 		print("Solenoid Off")
+	
+	def solenoid_on(self):
+		Thread(target=self.employee_verified, daemon=True).start()
 		
 	def activate_stepper(self):
 		GPIO.output(self.enable, GPIO.HIGH)
@@ -57,6 +61,16 @@ class HardwareActions:
 		GPIO.output(self.enable, GPIO.LOW)
 		print("Motor Off Backwards State")
 		sleep(.5)
+		
+	def stepper_on(self):
+		Thread(target = self.activate_stepper, daemon=True).start()
+	def stepper_off(self):
+		Thread(target = self.deactivate_stepper, daemon=True).start()
+		
+	def toolbox_open(self):
+		self.activate_stepper()
+		sleep(5)
+		self.deactivate_stepper()
 	
 	def gpio_clean_all(self):
 		used_pins = [21, 24, 27]

@@ -25,7 +25,7 @@ try:
 	root = CTk()
 	root.title("Laboratory Inventory")
 	root.geometry("800x480")
-	root.attributes('-fullscreen', True)
+	# ~ root.attributes('-fullscreen', True)
 
 	set_appearance_mode("light")
 
