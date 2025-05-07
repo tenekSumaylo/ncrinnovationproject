@@ -1,3 +1,6 @@
+# ~ All front end is here
+# ~ Back end is in separate python files each with their corresponding names
+
 from customtkinter import *
 from CTkDatePicker import CTkDatePicker
 from CTkMessagebox import CTkMessagebox
@@ -117,6 +120,7 @@ class MainMenu:
         #search part
         self.user_info_search_label = CTkLabel(self.root, text='Enter your QLID or RFID', font=("Sora", 20))
         self.user_info_search_entry = CTkEntry(self.root, width=200)
+        self.user_info_search_entry.bind('<Return>', self.show_user_info_credentials)
         self.user_info_search_submit = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50, command=self.show_user_info_credentials)
         
 
@@ -642,7 +646,7 @@ class MainMenu:
         self.user_info_search_entry.place(relx=0.5, rely=0.4, anchor='center')
         self.user_info_search_submit.place(relx=0.5, rely=0.6, anchor='center')
 
-    def show_user_info_credentials(self):
+    def show_user_info_credentials(self, event = None):
         result = self.db_actions.search_employee( self.user_info_search_entry.get(), self.user_info_search_entry.get())
         if  result != None:
                 self.clear_window()
@@ -838,13 +842,18 @@ class MainMenu:
                 get_data = pandas.read_csv(file_path, engine='python')
                 print(get_data)
                 for index, row in get_data.iterrows():
-                        self.admin_key_frame_ubox.insert('0.0', row['unitID'] + '\n')
-                        self.admin_key_frame_bbox.insert('0.0', row['key_description'] + '\n')
-                        self.admin_key_frame_dbox.insert('0.0', str(row['barcode']) + '\n' )
+                        self.admin_key_frame_ubox.insert('0.0', row['UNIT'] + '\n')
+                        self.admin_key_frame_bbox.insert('0.0', row['DESCRIPTION'] + '\n')
+                        self.admin_key_frame_dbox.insert('0.0', str(row['BARCODE']) + '\n' )
         except UnicodeDecodeError:
                 print('Please upload a csv file')
         except ValueError:
                 print( 'No file chosen' )
+        except: 
+                print("Upload a csv file")
+                
+    def file_upload_tools(self):
+        print('Norwen T')
     
     def admin_register_tool_batch(self):
         self.clear_window()

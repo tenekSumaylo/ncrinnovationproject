@@ -24,42 +24,33 @@ class HardwareActions:
 		
 	def employee_verified(self):
 		self.activate_solenoid_one()
-		print("Solenoid On")
 		sleep(1.5)
 		self.deactivate_solenoid_one()
-		print("Solenoid Off")
 	
 	def solenoid_on(self):
 		Thread(target=self.employee_verified, daemon=True).start()
 		
 	def activate_stepper(self):
 		GPIO.output(self.enable, GPIO.HIGH)
-		print("Motor On state Forwards")
+
 		sleep(.5) 
 		GPIO.output(self.direction, GPIO.LOW)
-		print("Direction: Forward")
-		
-		print("Moving Start")
-		for x in range(800): 
+
+		for x in range(300): 
 			GPIO.output(self.pulse, GPIO.HIGH)
 			sleep(0.0003)
 			GPIO.output(self.pulse, GPIO.LOW)
 			sleep(0.0003)
-		print("Moving End")
 		sleep(.5) 
     
 	def deactivate_stepper(self):
 		GPIO.output(self.direction, GPIO.HIGH)
-		print("Direction: Reverse")
-		print("Moving Start")
-		for y in range(800):
+		for y in range(300):
 			GPIO.output(self.pulse, GPIO.HIGH)
 			sleep(0.0003)
 			GPIO.output(self.pulse, GPIO.LOW)
 			sleep(0.0003)
-		print("Moving End")
 		GPIO.output(self.enable, GPIO.LOW)
-		print("Motor Off Backwards State")
 		sleep(.5)
 		
 	def stepper_on(self):
