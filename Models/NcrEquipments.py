@@ -8,7 +8,7 @@ class NcrEquipments:
 		self.description = ''
 		self.is_deleted = 0
 		
-	def set_ncr_equipment(self, tool_name, barcode, date_of_acquisiton, calibration_date, description, equipment_id = 0, is_deleted = 0):
+	def set_ncr_equipment(self, tool_name, barcode, date_of_acquisition, calibration_date, description, equipment_id = 0, is_deleted = 0):
 		self.equipment_id = equipment_id
 		self.tool_name = tool_name
 		self.barcode = barcode

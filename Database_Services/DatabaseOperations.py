@@ -34,12 +34,15 @@ class DatabaseOperations:
 			return None
 		return searched
 	
-	def add_item_key(self, the_key): 
-		if self.search_key( the_key.barcode ) != True:
-			self.cur.execute( "INSERT INTO NcrKeys ( unit_ID, keyDescription,barcode ) VALUES ( ?, ?, ?)", 
-							( the_key.unit, the_key.description, the_key.barcode )) 
-			self.conn.commit()
-		return True
+	def add_item_key(self, the_key):
+		try:
+			if self.search_key( the_key.barcode ) != True:
+				self.cur.execute( "INSERT INTO NcrKeys ( unit_ID, keyDescription,barcode ) VALUES ( ?, ?, ?)", 
+								( the_key.unit, the_key.description, the_key.barcode )) 
+				self.conn.commit()
+			return True
+		except:
+			print( 'An error occurred in item key addition')
 		
 	def search_key(self, barcode):
 		self.cur.execute( "SELECT barcode FROM NcrKeys WHERE barcode = ?", ( barcode, ))

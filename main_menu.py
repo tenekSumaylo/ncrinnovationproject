@@ -40,6 +40,7 @@ class MainMenu:
         self.not_returned_logs_dict = {}
         self.to_return_list = []
         self.clear_not_returned_dict = {}
+        self.batch_add = []
         
         #instance member
         self.selected_log = StringVar()
@@ -269,7 +270,7 @@ class MainMenu:
         
         #file upload 
         self.admin_file_upload_key = CTkButton(self.root, text='Upload file', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=30,command=self.file_upload)
-        self.admin_file_upload_tool = CTkButton(self.root, text='Upload file', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=30,command=self.file_upload)
+        self.admin_file_upload_tool = CTkButton(self.root, text='Upload file', font=("Sora", 15), hover_color="#005142", fg_color="#00291d",bg_color="transparent", corner_radius=12,border_color="#005142", border_width=2,height=30,command=self.file_upload_tools)
         
        
 #########################################################################################################################################################################################################
@@ -754,6 +755,7 @@ class MainMenu:
         self.admin_tool_batch_add.place(relx=0.4, rely=0.4, anchor='center')
         
     def admin_register_key_batch(self):
+        self.batch_add.clear()
         self.clear_window()
         self.admin_back.place(relx=0.4, rely=0.93, anchor='center')
         
@@ -788,34 +790,45 @@ class MainMenu:
         self.admin_item_key_ID_submit.place(relx=0.6, rely=0.93, anchor='center')
 
     def show_key_register_end(self):
-        the_key = ncr_keys.NcrKeys()
-        the_key.unit = self.admin_item_key_ID_entry.get()
-        the_key.barcode = self.admin_item_key_ID_barcode_entry.get()
-        the_key.description = self.admin_item_key_ID_description_box.get("0.0", "end")
-        the_key.description = the_key.description + '.'
-        index = the_key.description.rfind( '.' )
-        the_key.description = the_key.description.replace('\n', ' ' )
-        print( the_key.description )
-        #print( index )
-        the_key.description = the_key.description[:index-1]
-        print( the_key.description ) 
-        if self.db_actions.search_key( self.admin_item_key_ID_barcode_entry.get() ) == False and self.db_actions.search_equipment( self.admin_item_key_ID_barcode_entry.get()) == False :
-                if the_key.ncr_key_accepted():
-                        self.clear_window()
-                        self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
-                        self.admin_item_key_end.place(relx=0.5, rely=0.3, anchor='center')
-                        if self.db_actions.add_item_key( the_key ):
-                                print( "Successful")
+        try:
+                the_key = ncr_keys.NcrKeys()
+                the_key.unit = self.admin_item_key_ID_entry.get()
+                the_key.barcode = self.admin_item_key_ID_barcode_entry.get()
+                the_key.description = self.admin_item_key_ID_description_box.get("0.0", "end")
+                the_key.description = the_key.description + '.'
+                index = the_key.description.rfind( '.' )
+                the_key.description = the_key.description.replace('\n', ' ' )
+                print( the_key.description )
+                #print( index )
+                the_key.description = the_key.description[:index-1]
+                print( the_key.description ) 
+                if self.db_actions.search_key( self.admin_item_key_ID_barcode_entry.get() ) == False and self.db_actions.search_equipment( self.admin_item_key_ID_barcode_entry.get()) == False :
+                        if the_key.ncr_key_accepted():
+                                self.clear_window()
+                                self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+                                self.admin_item_key_end.place(relx=0.5, rely=0.3, anchor='center')
+                                if self.db_actions.add_item_key( the_key ):
+                                        print( "Successful")
+                        else:
+                                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Invalid Key", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12))
                 else:
-                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Invalid Key", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12))
-        else:
-                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Barcode already exists for this unit", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Barcode already exists for this unit", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+        except:
+                print('An error occurred in registering keys')
 
     def show_key_register_batch_end(self):
-        self.clear_window()
-        self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
-        
-        self.admin_item_key_end.place(relx=0.5, rely=0.3, anchor='center')
+        if len(self.batch_add) != 0:
+                self.clear_window()
+                self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+                self.admin_item_key_end.place(relx=0.5, rely=0.3, anchor='center')
+                for row in self.batch_add:
+                        unit, description, barcode = row
+                        init_key = ncr_keys.NcrKeys()
+                        init_key.set_ncr_key(barcode, unit, description )
+                        self.db_actions.add_item_key( init_key )
+                self.batch_add.clear()
+        else:
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="You must upload a file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
                 
     def remove_new_lines(self, description):
         newstr = ''
@@ -839,21 +852,114 @@ class MainMenu:
                 file_path = filedialog.askopenfilename()
                 if file_path:
                         print( f"File selected: {file_path} " )
+                self.batch_add.clear()
                 get_data = pandas.read_csv(file_path, engine='python')
                 print(get_data)
+                print( f"The length of the csv is {len(get_data)} and the number of columns {len(get_data.columns)}")
+                
+                # check if the csv being read is empty 
+                if get_data.empty:
+                        self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV File", message="The CSV file is empty", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
+                        return
+                print('1')
+                
+                # drop all the empty rows through this function
+                get_data = get_data.dropna(how='all')
+                get_data = get_data.reset_index(drop=True)
+                print(get_data)
+                        
+                # this function checks if there are duplicates in barcodes
+                if get_data['BARCODE'].duplicated().any():
+                        self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV File", message="Barcodes should have no duplicates", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
+                        return
+                
+                if not len(get_data.columns) == 3:
+                        self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="CSV file should contain 3 columns only", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)                        
+                        return
+                print('[DEBUG] after testing types')
                 for index, row in get_data.iterrows():
+                        if not isinstance( row['UNIT'], str) and not isinstance(row['DESCRIPTION'], str) and not isinstance(row['BARCODE'], str):
+                                self.message_box_test = CTkMessagebox(master=self.root, title="Error", message="An error occurred, values should be string", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)    
+                                return
                         self.admin_key_frame_ubox.insert('0.0', row['UNIT'] + '\n')
                         self.admin_key_frame_bbox.insert('0.0', row['DESCRIPTION'] + '\n')
-                        self.admin_key_frame_dbox.insert('0.0', str(row['BARCODE']) + '\n' )
+                        self.admin_key_frame_dbox.insert('0.0', row['BARCODE'] + '\n' )
+                        self.batch_add.append((row['UNIT'], row['BARCODE'], row['DESCRIPTION']))
         except UnicodeDecodeError:
-                print('Please upload a csv file')
+                self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)      
+                self.batch_add.clear()                      
         except ValueError:
-                print( 'No file chosen' )
-        except: 
-                print("Upload a csv file")
+                self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)       
+                self.batch_add.clear()               
+        except:
+                self.message_box_test = CTkMessagebox(master=self.root, title="Invalid Column Name", message="Please check column names, it must match with the documentation", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)                    
+                self.admin_key_frame_ubox.delete( '0.0', 'end' )
+                self.admin_key_frame_bbox.delete('0.0', 'end')
+                self.admin_key_frame_dbox.delete('0.0', 'end')
+                self.batch_add.clear()        
                 
     def file_upload_tools(self):
-        print('Norwen T')
+        try:
+                print('Tools area')
+                file_path = filedialog.askopenfilename()
+                if file_path:
+                        print( f"File selected: {file_path} " )
+                self.batch_add.clear()
+                get_data = pandas.read_csv(file_path, engine='python')
+                print(get_data)
+                print( f"The length of the csv is {len(get_data)} and the number of columns {len(get_data.columns)}")
+                if get_data.empty:
+                        self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV File", message="The CSV file is empty", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
+                        return
+                print('1')
+                
+                # drop all the empty rows through this function
+                get_data = get_data.dropna(how='all')
+                get_data = get_data.reset_index(drop=True)
+                print(get_data)
+                        
+                # this function checks if there are duplicates in barcodes
+                if get_data['BARCODE'].duplicated().any():
+                        self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV File", message="Barcodes should have no duplicates", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
+                        return
+                
+                print('2')
+                # this checks the length of the columns 
+                if not len(get_data.columns) == 5:
+                        self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="CSV file should contain 5 columns only", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)                        
+                        return
+                
+                # convert the strings into datetime
+                
+                get_data['D_ACQUISITION'] = pandas.to_datetime(get_data['D_ACQUISITION'], format = '%m/%d/%Y')
+                get_data['D_CALIBRATION'] = pandas.to_datetime(get_data['D_CALIBRATION'], format = '%m/%d/%Y')
+                
+                print('[DEBUG] after testing types')
+                for index, row in get_data.iterrows():
+                        if not isinstance( row['NAME'], str) and not isinstance(row['DESCRIPTION'], str) and not isinstance(row['BARCODE'], str) and not isinstance(row['D_ACQUISITION'], str) and not isinstance(row['D_CALIBRATION'], str):
+                                self.message_box_test = CTkMessagebox(master=self.root, title="Error", message="An error occurred, values should be string", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)    
+                                return
+                        
+                        self.admin_equipment_frame_nbox.insert('0.0', row['NAME'] + '\n')
+                        self.admin_equipment_frame_bbox.insert('0.0', row['BARCODE'] + '\n')
+                        self.admin_equipment_frame_dabox.insert('0.0', str(row['D_ACQUISITION']) + '\n' )
+                        self.admin_equipment_frame_dcbox.insert('0.0', str(row['D_CALIBRATION']) + '\n' )
+                        self.batch_add.append((row['NAME'], row['BARCODE'], str(row['D_ACQUISITION']), str(row['D_CALIBRATION']), row['DESCRIPTION']))
+                        print( type(row['D_ACQUISITION']) )
+        except UnicodeDecodeError:
+                self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)      
+                self.batch_add.clear()                      
+        except ValueError:
+                self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)       
+                self.batch_add.clear()   
+        
+        except:
+                self.message_box_test = CTkMessagebox(master=self.root, title="Invalid Column Name", message="Please check column names, it must match with the documentation", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)                    
+                self.admin_key_frame_ubox.delete( '0.0', 'end' )
+                self.admin_key_frame_bbox.delete('0.0', 'end')
+                self.admin_key_frame_dbox.delete('0.0', 'end')
+                self.batch_add.clear()       
+        
     
     def admin_register_tool_batch(self):
         self.clear_window()
@@ -945,10 +1051,21 @@ class MainMenu:
                 print( 'Unable to parse date time' )
 
     def show_tool_register_batch_end(self):
-        self.clear_window()
-        self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
-        
-        self.admin_item_tool_end.place(relx=0.5, rely=0.3, anchor='center')
+        if len(self.batch_add) != 0:
+                self.clear_window()
+                self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
+                self.admin_item_tool_end.place(relx=0.5, rely=0.3, anchor='center')
+                for row in self.batch_add:
+                        name, barcode, da, dc, desc = row
+                        init_tool = ncr_equipments.NcrEquipments()
+                        init_tool.set_ncr_equipment(name, barcode, da, dc, desc)
+                        init_tool.date_of_acquisition = datetime.strptime(init_tool.date_of_acquisition, "%Y-%m-%d %H:%M:%S")
+                        init_tool.calibration_date = datetime.strptime(init_tool.calibration_date, "%Y-%m-%d %H:%M:%S")
+                        self.db_actions.add_item_equipment( init_tool )
+                self.batch_add.clear()
+        else:
+                self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="You must upload a file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
+
 
     def logs_reports_menu(self):
         self.clear_window()
