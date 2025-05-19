@@ -27,7 +27,8 @@ class DatabaseOperations:
 			
 		return False
 			
-	def search_employee(self, q_lid = None, rfid = None): # this searches for a specific employee
+	def search_employee(self, q_lid = None, rfid = None): # this searches for a specific 
+		print(q_lid)
 		self.cur.execute( "SELECT * FROM NcrEmployees WHERE q_lid = ? OR rfid = ?", (q_lid, rfid))
 		searched = self.cur.fetchone()
 		if searched == None:
@@ -328,8 +329,74 @@ class DatabaseOperations:
 				return None
 		except mariadb.InterfaceError:
 			print( 'Database error/timeout' )
-	
 			
+	def get_all_logs_range(self, start_date, end_date):
+		try:
+			self.cur.execute('SELECT * FROM BorrowLogs WHERE borrowDate BETWEEN (?) and (?)', (start_date, end_date))
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred in getting the logs range')
+			
+	def search_return_log_by_id(self, log_id):
+		try:
+			self.cur.execute('SELECT * FROM ReturnLogs WHERE log_id = (?)', (log_id,))
+			res = self.cur.fetchone()
+			if res is None:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred in retrieving return logs')
+	
+	def get_borrowed_keys_by_id(self, log_id):
+		try:
+			self.cur.execute('SELECT * FROM BorrowedKey WHERE log_id = ?', (log_id,))
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred while retrieved borrowed keys')
+			
+	def get_returned_keys_by_id(self, log_id):
+		try:
+			self.cur.execute('SELECT * FROM ReturnedKey WHERE log_id = ?', (log_id,))
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred while retrieved borrowed keys')
+			
+	def get_borrowed_equipment_by_id(self, log_id):
+		try:
+			self.cur.execute('SELECT * FROM BorrowedEquipment WHERE log_id = ?', (log_id,))
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred while retrieved borrowed keys')
+			
+	def get_returned_equipment_by_id(self, log_id):
+		try:
+			self.cur.execute('SELECT * FROM ReturnedEquipment WHERE log_id = ?', (log_id,))
+			res = self.cur.fetchall()
+			if len(res) == 0:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred while retrieved borrowed keys')
+			
+	
 			
 	
 	

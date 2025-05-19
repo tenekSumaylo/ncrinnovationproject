@@ -25,7 +25,7 @@ try:
 	root = CTk()
 	root.title("Laboratory Inventory")
 	root.geometry("800x480")
-	# root.attributes('-fullscreen', True)  #TURN THIS ON WHEN USING THE SMALL MONITOR
+	root.attributes('-fullscreen', True)  #TURN THIS ON WHEN USING THE SMALL MONITOR
 
 	set_appearance_mode("light")
 

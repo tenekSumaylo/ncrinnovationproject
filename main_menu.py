@@ -10,6 +10,7 @@ import sys
 sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Hardware_Services')
 sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Database_Services')
 sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/Models')
+sys.path.append('/home/keylog/ncr_innovation_project/PythonProject/viewmodel')
 import NcrEquipments as ncr_equipments
 import NcrKeys as ncr_keys
 import NcrEmployees as ncr_employees
@@ -18,10 +19,18 @@ import BorrowLogs as ncr_borrow_logs
 import HardwareOperations as hardware_operations
 import DatabaseOperations as database_operations
 import BorrowedItem as borrowed_item
+from logsvm import LogsViewModel
 from dateutil import parser
-from datetime import datetime
+from datetime import datetime, time
 from dateutil.parser import ParserError
 import pandas
+import os
+#
+import reportlab.lib.colors as rl_colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import Paragraph, Spacer, SimpleDocTemplate, Table, TableStyle, PageBreak
+#
 
 
 #from PIL import Imageadmin_file_upload_tool
@@ -159,7 +168,8 @@ class MainMenu:
         #first part
         self.admin_scan_id = CTkLabel(self.root, text='Admin Password', font=("Sora", 20))
         self.admin_scan_entry = CTkEntry(self.root, width=300)
-        self.admin_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.show_admin_menu)
+        self.admin_scan_entry.bind('<Return>', self.admin_verification)
+        self.admin_scan_next = CTkButton(self.root, text='Submit', font=("Sora", 15), hover_color="#005142", fg_color="#00291d", corner_radius=12,border_color="#005142", border_width=2,width=100,height=50,command=self.admin_verification)
 
 
         self.admin_label = CTkLabel(self.root, text='Admin configurations', font=('Sora', 30))
@@ -187,33 +197,33 @@ class MainMenu:
         #batch add key frames
         self.admin_key_frame_ulabel = CTkLabel(self.root, text='Unit', font=('Sora', 15))
         self.admin_key_frame_unit = CTkFrame(master=root, border_color="#00291d", border_width=2, width=170, height=300)
-        self.admin_key_frame_ubox = CTkTextbox(master=self.admin_key_frame_unit, width =150, height = 280)
+        self.admin_key_frame_ubox = CTkListbox(master=self.admin_key_frame_unit, width =150, height = 280)
         
         
         self.admin_key_frame_blabel = CTkLabel(self.root, text='Barcode', font=('Sora', 15))
         self.admin_key_frame_barcode = CTkFrame(master=root, border_color="#00291d", border_width=2, width=170, height=300)
-        self.admin_key_frame_bbox = CTkTextbox(master=self.admin_key_frame_barcode, width =150, height = 280)
+        self.admin_key_frame_bbox = CTkListbox(master=self.admin_key_frame_barcode, width =150, height = 280)
         
         self.admin_key_frame_dlabel = CTkLabel(self.root, text='Description', font=('Sora', 15))
         self.admin_key_frame_desc = CTkFrame(master=root, border_color="#00291d", border_width=2, width=170, height=300)
-        self.admin_key_frame_dbox = CTkTextbox(master=self.admin_key_frame_desc, width =150, height = 280)
+        self.admin_key_frame_dbox = CTkListbox(master=self.admin_key_frame_desc, width =150, height = 280)
         
         #batch add tool frames
         self.admin_equipment_frame_nlabel = CTkLabel(self.root, text='Tool Name', font=('Sora', 15))
-        self.admin_equipment_frame_name = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
-        self.admin_equipment_frame_nbox = CTkTextbox(master=self.admin_equipment_frame_name, width =90, height = 280)
+        self.admin_equipment_frame_name = CTkFrame(master=root, border_color="#00291d", border_width=2, width=160, height=300)
+        self.admin_equipment_frame_nbox = CTkListbox(master=self.admin_equipment_frame_name, width =150, height = 280)
         
         self.admin_equipment_frame_blabel = CTkLabel(self.root, text='Barcode', font=('Sora', 15))
-        self.admin_equipment_frame_barcode = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
-        self.admin_equipment_frame_bbox = CTkTextbox(master=self.admin_equipment_frame_barcode, width =90, height = 280)
+        self.admin_equipment_frame_barcode = CTkFrame(master=root, border_color="#00291d", border_width=2, width=160, height=300)
+        self.admin_equipment_frame_bbox = CTkListbox(master=self.admin_equipment_frame_barcode, width =150, height = 280)
         
         self.admin_equipment_frame_dalabel = CTkLabel(self.root, text='Date Acquired', font=('Sora', 15))
-        self.admin_equipment_frame_dateacq = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
-        self.admin_equipment_frame_dabox = CTkTextbox(master=self.admin_equipment_frame_dateacq, width =90, height = 280)
+        self.admin_equipment_frame_dateacq = CTkFrame(master=root, border_color="#00291d", border_width=2, width=160, height=300)
+        self.admin_equipment_frame_dabox = CTkListbox(master=self.admin_equipment_frame_dateacq, width =150, height = 280)
         
         self.admin_equipment_frame_dclabel = CTkLabel(self.root, text='Date Calibrated', font=('Sora', 15))
-        self.admin_equipment_frame_datecal = CTkFrame(master=root, border_color="#00291d", border_width=2, width=110, height=300)
-        self.admin_equipment_frame_dcbox = CTkTextbox(master=self.admin_equipment_frame_datecal, width =90, height = 280)
+        self.admin_equipment_frame_datecal = CTkFrame(master=root, border_color="#00291d", border_width=2, width=160, height=300)
+        self.admin_equipment_frame_dcbox = CTkListbox(master=self.admin_equipment_frame_datecal, width =150, height = 280)
         
         #Key part
         self.admin_item_key_ID_label = CTkLabel(master=self.admin_item_frame, text='Unit', font=('Sora', 15))
@@ -302,7 +312,16 @@ class MainMenu:
         self.return_items_entry.delete(0,'end')
         self.return_borrow_list.delete("0.0", "end")
         self.return_to_return_list.delete("0.0", "end")
-
+        
+        # entries for batch
+        self.admin_key_frame_ubox.delete(0, "end")
+        self.admin_key_frame_bbox.delete(0, "end")
+        self.admin_key_frame_dbox.delete(0, "end")
+        self.admin_equipment_frame_nbox.delete(0, "end")
+        self.admin_equipment_frame_dabox.delete(0, "end")
+        self.admin_equipment_frame_dcbox.delete(0, "end")
+        self.admin_equipment_frame_bbox.delete(0, "end")
+        
         # search entries clear
         self.user_info_search_entry.delete(0, 'end')
         self.user_info_search_name_box.delete("0.0", "end")
@@ -440,6 +459,7 @@ class MainMenu:
         self.clear_window()
         self.show_main_back()
         self.hdw_actions.stepper_off()
+        self.clear_all_entry()
         
         
         self.borrow_keys.place(relx=0.4, rely=0.4, anchor= 'center')
@@ -449,6 +469,7 @@ class MainMenu:
         if valueType == 'equipments':
                 self.indicator = 1
                 self.hdw_actions.stepper_on()
+                print('get')
         elif valueType == 'keys':
                 self.indicator = 2
                 # ~ self.message_box_test = CTkMessagebox(master=self.root, title="Information", message="Opening Keybox", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
@@ -473,7 +494,7 @@ class MainMenu:
                 
                 if self.indicator == 1:
                         temp = self.db_actions.get_equipment_details( self.borrow_entry.get())
-                        self.hdw_actions.deactivate_stepper()
+                        # self.hdw_actions.deactivate_stepper()
                         if not temp is None:
                                 temp_list = [ temp[ 2 ], temp[ 0 ], temp[ 3 ] ]
                 elif self.indicator == 2:
@@ -484,6 +505,8 @@ class MainMenu:
                         entry_text = temp_list[ 0 ]
                         self.borrow_text.insert('end', entry_text + '\n')
                         self.to_borrow_dict[ self.borrow_entry.get() ] = temp_list # put inside dictionary
+                elif self.to_borrow_dict.get(self.borrow_entry.get(), None) is not None:
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Item already in the list", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
                 else:
                         self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Item does not exist", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
                         
@@ -592,10 +615,10 @@ class MainMenu:
                                 self.return_to_return_list.insert( '0.0', employee_borrow_details.name + "\n")
                                 print('appended')
                         else:
-                                print('Item already logged')
+                           self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Item already logged", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
                         self.show_return_borrow_logs('update')
                 else:
-                        print( 'Item not in this log' )
+                        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Item does not exist", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
 
 
     def return_end(self):
@@ -724,6 +747,7 @@ class MainMenu:
         self.admin_scan_next.place(relx=0.5, rely=0.6, anchor='center')
 
     def show_admin_menu(self):
+            
         self.clear_window()
         self.clear_all_entry()
         self.show_main_back()
@@ -734,6 +758,7 @@ class MainMenu:
 
     def show_admin_selection_menu(self):
         self.clear_window()
+        self.clear_all_entry()
         self.admin_main_back.place(relx=0.5, rely=0.9, anchor='center')
 
         self.admin_item_label.place(relx=0.5, rely=0.2, anchor='center')
@@ -822,7 +847,7 @@ class MainMenu:
                 self.admin_main_back.place(relx=0.5, rely=0.8, anchor='center')
                 self.admin_item_key_end.place(relx=0.5, rely=0.3, anchor='center')
                 for row in self.batch_add:
-                        unit, description, barcode = row
+                        unit, barcode, description = row
                         init_key = ncr_keys.NcrKeys()
                         init_key.set_ncr_key(barcode, unit, description )
                         self.db_actions.add_item_key( init_key )
@@ -881,9 +906,9 @@ class MainMenu:
                         if not isinstance( row['UNIT'], str) and not isinstance(row['DESCRIPTION'], str) and not isinstance(row['BARCODE'], str):
                                 self.message_box_test = CTkMessagebox(master=self.root, title="Error", message="An error occurred, values should be string", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)    
                                 return
-                        self.admin_key_frame_ubox.insert('0.0', row['UNIT'] + '\n')
-                        self.admin_key_frame_bbox.insert('0.0', row['DESCRIPTION'] + '\n')
-                        self.admin_key_frame_dbox.insert('0.0', row['BARCODE'] + '\n' )
+                        self.admin_key_frame_ubox.insert('end', row['UNIT'] + '\n')
+                        self.admin_key_frame_bbox.insert('end', row['DESCRIPTION'] + '\n')
+                        self.admin_key_frame_dbox.insert('end', row['BARCODE'] + '\n' )
                         self.batch_add.append((row['UNIT'], row['BARCODE'], row['DESCRIPTION']))
         except UnicodeDecodeError:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)      
@@ -940,10 +965,10 @@ class MainMenu:
                                 self.message_box_test = CTkMessagebox(master=self.root, title="Error", message="An error occurred, values should be string", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)    
                                 return
                         
-                        self.admin_equipment_frame_nbox.insert('0.0', row['NAME'] + '\n')
-                        self.admin_equipment_frame_bbox.insert('0.0', row['BARCODE'] + '\n')
-                        self.admin_equipment_frame_dabox.insert('0.0', str(row['D_ACQUISITION']) + '\n' )
-                        self.admin_equipment_frame_dcbox.insert('0.0', str(row['D_CALIBRATION']) + '\n' )
+                        self.admin_equipment_frame_nbox.insert('end', row['NAME'] + '\n')
+                        self.admin_equipment_frame_bbox.insert('end', row['BARCODE'] + '\n')
+                        self.admin_equipment_frame_dabox.insert('end', str(row['D_ACQUISITION']) + '\n' )
+                        self.admin_equipment_frame_dcbox.insert('end', str(row['D_CALIBRATION']) + '\n' )
                         self.batch_add.append((row['NAME'], row['BARCODE'], str(row['D_ACQUISITION']), str(row['D_CALIBRATION']), row['DESCRIPTION']))
                         print( type(row['D_ACQUISITION']) )
         except UnicodeDecodeError:
@@ -1127,8 +1152,173 @@ class MainMenu:
         self.print_logs_start_date.place(relx=0.3,rely=0.4, anchor='center') 
         self.print_logs_end_date.place(relx=0.7,rely=0.4, anchor='center')
         self.print_logs_button.place(relx=0.5, rely=0.6, anchor='center')
-
+    
+    def admin_verification(self, event = None):
+            if self.admin_scan_entry.get()  == 'admin':
+                    self.message_box_test = CTkMessagebox(master=self.root, title="Successful admin login", message="Admin login successful", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
+                    self.show_admin_menu()
+            else:
+                    self.message_box_test = CTkMessagebox(master=self.root, title="Unsuccessful admin login", message="Admin login not successful", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
     def print_to_pdf(self):
-        print("yeah put the export thing here")
+        if not self.print_logs_start_date.date_entry.get() == '' and not self.print_logs_end_date.date_entry.get() == '':
+                print(self.print_logs_start_date.date_entry.get())
+                print(type(self.print_logs_start_date.date_entry.get()))
+                start_date = datetime.strptime(self.print_logs_start_date.date_entry.get(), "%m/%d/%Y").date()
+                end_date = datetime.strptime(self.print_logs_end_date.date_entry.get(), "%m/%d/%Y").date()
+                midnight = time(0,0,0)
+                end_time = time(23, 59, 59)
+                
+                start_d = datetime.combine(start_date, midnight)
+                end_d = datetime.combine(end_date, end_time)
+                formatted_start =  start_d.strftime("%Y-%m-%d %H:%M:%S")
+                formatted_end =  end_d.strftime("%Y-%m-%d %H:%M:%S")
+                print('-------------')
+                print( formatted_start)
+                print(formatted_end)
+                print('-------------')
+                print(self.print_logs_end_date.date_entry.get())
+                print(type(self.print_logs_end_date.date_entry.get()))
+                all_logs = self.db_actions.get_all_logs_range(formatted_start, formatted_end)
+                print("yeah put the export thing here")
+                if all_logs is not None and len(all_logs) != 0:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        start_string = start_d.strftime("%Y-%m-%d_%H%M%S")
+                        end_string = end_d.strftime("%Y-%m-%d_%H%M%S")
+                        pdf_path = os.path.join(os.getcwd(), 'Reportings', 
+                                                f'Project_Lista Report - From {start_string} to {end_string}--- recorded {timestamp}')
+                        doc = SimpleDocTemplate(pdf_path, pagesize=letter)
+                        styles = getSampleStyleSheet()
+                        elems = []
+                        
+                        h_center = ParagraphStyle(
+                                "CenterHeading",
+                                parent=styles["Heading1"],
+                                alignment = 1,
+                                spaceAfter = 12)
+                        elems.append(Paragraph('PROJECT LISTA BORROW AND RETURN REPORT', h_center))
+                        elems.append(Paragraph('Borrow and Return Logs', styles['Heading2']))
+                        elems.append(Spacer(1,6))
+                        # query for keys and equipments that are borrowed and returned
+                        
+                        keys_list = []
+                        tools_list = []
+                        table_1_data = [ ['Borrow No.', 'First Name', 'Last Name', 'Borrow Date', 'Return Date', 'Status']]
+                        for row in all_logs:
+                                employee = self.db_actions.search_employee(row[3], row[3])
+                                print(f'test {row[3]}')
+                                return_log = self.db_actions.search_return_log_by_id(row[ 0 ] ) 
+                                
+                                if employee is not None:
+                                        if return_log is not None:
+                                                table_1_data.append([row[0], employee[1], employee[2], row[1], return_log[2], 'Returned'])
+                                        else:
+                                                table_1_data.append([row[0], employee[1], employee[2], row[1], '--------', 'Not Returned'])
+                                                
+                                        
+                                        if row[ 4 ] == 'key':
+                                                t_keys = LogsViewModel(row[ 0 ], row[ 1 ], (lambda r: r[2] if r else None)(return_log), employee[ 1 ], employee[ 2 ])
+                                                temp_key = self.db_actions.get_borrowed_keys_by_id(row[0])
+                                                if temp_key is not None:
+                                                        t_keys.borrowed_item.extend(temp_key)
+                                                if return_log is None:
+                                                        t_keys.returned_item = None
+                                                else:
+                                                        temp_key_returned = self.db_actions.get_returned_keys_by_id(row[0])
+                                                        if temp_key_returned is not None:
+                                                                t_keys.returned_item.extend(temp_key_returned)
+                                                        else:
+                                                                t_keys.returned_item = None
+                                                keys_list.append(t_keys)
+                                        elif row[ 4 ] == 'equipment':
+                                                t_equipment = LogsViewModel(row[ 0 ], row[ 1 ], (lambda r: r[2] if r else None)(return_log), employee[ 1 ], employee[ 2 ])
+                                                temp_equipment = self.db_actions.get_borrowed_equipment_by_id(row[0])
+                                                if temp_equipment is not None:
+                                                        t_equipment.borrowed_item.extend(temp_equipment)
+                                                if return_log is None:
+                                                        t_equipment.returned_item = None
+                                                else:
+                                                        temp_equipment_returned = self.db_actions.get_returned_equipment_by_id(row[ 0 ] )
+                                                        if temp_equipment_returned is not None:
+                                                                t_equipment.returned_item.extend(temp_equipment_returned)
+                                                        else:
+                                                                t_equipment.returned_item = None
+                                                tools_list.append(t_equipment)
+                                                
+                        tbl1 = Table(table_1_data, repeatRows=1, hAlign="CENTER")
+                        tbl1.setStyle(TableStyle([
+                                ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor("#28B463")),
+                                ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.white),
+                                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                                ("FONTSIZE", (0, 0), (-1, 0), 11),
+                                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                                ("GRID", (0, 0), (-1, -1), 0.5, rl_colors.grey),
+                                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [rl_colors.white, rl_colors.HexColor("#D5F5E3")]),
+                                ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                        ]))
+                        elems.append(tbl1)
+                        elems.append(Spacer(1,18))
+                        elems.append(PageBreak())
+                        
+                        if len(tools_list) != 0:
+                                elems.append(Paragraph('Borrowed Equipments and Tools Report', styles['Heading2']))
+                                elems.append(Spacer(1,6))
+                                table_2_data = [ ['Borrow No.', 'First Name', 'Last Name', 'Item Name', 'Borrow Date', 'Return Date', 'Status']]
+                                for tool in tools_list:
+                                        print(f'wen testxxx {tool.borrowed_item}')
+                                        if tool is not None:
+                                                for item in tool.borrowed_item:
+                                                        if tool.returned_item is not None and item in tool.returned_item:
+                                                                table_2_data.append([tool.log_id, tool.first_name, tool.last_name, item[ 2 ], tool.borrowed_date, tool.returned_date, 'Returned'])
+                                                        else:
+                                                                table_2_data.append([tool.log_id, tool.first_name, tool.last_name, item[ 2 ], tool.borrowed_date, '----------', 'Not Returned'])
+                                
+                                tbl2 = Table(table_2_data, repeatRows=1, hAlign="CENTER")
+                                tbl2.setStyle(TableStyle([
+                                        ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor("#28B463")),
+                                        ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.white),
+                                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                                        ("FONTSIZE", (0, 0), (-1, 0), 11),
+                                        ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                                        ("GRID", (0, 0), (-1, -1), 0.5, rl_colors.grey),
+                                        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [rl_colors.white, rl_colors.HexColor("#D5F5E3")]),
+                                        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                                ]))
+                                elems.append(tbl2)
+                                elems.append(Spacer(1,18))
+                                elems.append(PageBreak())
+                        
+                        
+                        if len(keys_list) != 0:
+                                elems.append(Paragraph('Borrowed Keys Report', styles['Heading2']))
+                                elems.append(Spacer(1,6))
+                                table_3_data = [ ['Borrow No.', 'First Name', 'Last Name', 'Item Name', 'Borrow Date', 'Return Date', 'Status']]
+                                for keys in keys_list:
+                                        if keys is not None:
+                                                for item in keys.borrowed_item:
+                                                        if keys.returned_item is not None and item in keys.returned_item:
+                                                                table_3_data.append([keys.log_id, keys.first_name, keys.last_name, item[ 2 ], keys.borrowed_date, keys.returned_date, 'Returned'])
+                                                        else:
+                                                                table_3_data.append([keys.log_id, keys.first_name, keys.last_name, item[ 2 ], keys.borrowed_date, '----------', 'Not Returned'])
+                                tbl3 = Table(table_3_data, repeatRows=1, hAlign="CENTER")
+                                tbl3.setStyle(TableStyle([
+                                        ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor("#28B463")),
+                                        ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.white),
+                                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                                        ("FONTSIZE", (0, 0), (-1, 0), 11),
+                                        ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                                        ("GRID", (0, 0), (-1, -1), 0.5, rl_colors.grey),
+                                        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [rl_colors.white, rl_colors.HexColor("#D5F5E3")]),
+                                        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                                ]))
+                                elems.append(tbl3)
+                                elems.append(Spacer(1,18))
+                                elems.append(PageBreak())
+                        doc.build(elems)                        
+        
+            
+            
         
             
