@@ -396,6 +396,17 @@ class DatabaseOperations:
 		except:
 			print('An error occurred while retrieved borrowed keys')
 			
+	def search_borrow_log_by_id(self, log_id):
+		try:
+			self.cur.execute('SELECT * FROM BorrowLogs WHERE log_id = (?)', (log_id,))
+			res = self.cur.fetchone()
+			if res is None:
+				return None
+			else:
+				return res
+		except:
+			print('An error occurred in retrieving return logs')
+			
 	
 			
 	

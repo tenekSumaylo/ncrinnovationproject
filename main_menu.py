@@ -24,7 +24,7 @@ from dateutil import parser
 from datetime import datetime, time
 from dateutil.parser import ParserError
 import pandas
-import os
+import subprocess
 #
 import reportlab.lib.colors as rl_colors
 from reportlab.lib.pagesizes import letter
@@ -292,6 +292,7 @@ class MainMenu:
         #instance members as holders for singleton data
         self.indicator = 0
         self.current_qlid = ''
+        self.return_status = ''
         
     #Clear screen and entries
     def clear_window(self):
@@ -415,6 +416,9 @@ class MainMenu:
         self.clear_window()
         self.clear_all_entry()
         self.show_main_buttons()
+        if self.return_status == 'equipment':
+                self.hdw_actions.stepper_off()
+                self.return_status = ''
 
     ###
 
@@ -444,11 +448,15 @@ class MainMenu:
                 if valueType == 1:
                         self.show_borrow_selection_menu()
                 elif valueType == 2:
+                        if self.return_status == 'equipment':
+                                self.hdw_actions.stepper_off()
+                        self.return_status = ''
                         self.return_drop_box.set( 'Select To Return')
                         self.not_returned_logs_dict.clear()
                         self.to_return_list.clear()
                         self.show_return_menu()
                 elif valueType == 3:
+                        self.admin_config_search_user_entry.delete(0, 'end')
                         self.clear_not_returned_dict.clear()
                         self.admin_rlogs_menu()
         else:
@@ -584,15 +592,29 @@ class MainMenu:
                         self.not_returned_logs_dict[ f"{i[ 0 ]} {i[ 2 ]}" ] = employee_borrow_log
                 self.return_drop_box.configure( values = self.not_returned_logs_dict )
         
-    def selected_return_log(self):
-        print('hehe')
+    def selected_return_log(self, event = None):
+        selected = self.return_drop_box.get()
+        print(selected)
 
     def show_return_borrow_logs(self, value = ''):
+        
+        if self.return_status == 'equipment' and not value == 'update':
+                self.hdw_actions.stepper_off()
         if not value == 'update':
                 self.return_to_return_list.delete('0.0', 'end')
                 self.to_return_list.clear()
         self.return_borrow_list.delete("0.0", "end")
         temp = self.not_returned_logs_dict[ self.selected_log.get() ] # assign to temp the borrow log
+        #print(f'CHECKING {temp.borrow_type}')
+        if not value == 'update':
+                if temp.borrow_type == 'equipment':
+                        #self.hdw_actions.stepper_off()
+                        self.hdw_actions.stepper_on()
+                        self.return_status = 'equipment'
+                elif temp.borrow_type == 'key':
+                        print('key')
+                        self.return_status = 'key'
+                        self.hdw_actions.solenoid_on()
         
         for i, j in temp.borrow_list.items():
                 if value == 'update' and any( j.barcode == x.barcode for x in self.to_return_list ): # check if value is update and check if the an item is in scanned return list
@@ -626,7 +648,10 @@ class MainMenu:
                 print( 'Please add an item to return' )
                 self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="Please add an Item to return!", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
 
-        else:                
+        else:
+                if self.return_status == 'equipment':
+                        self.hdw_actions.stepper_off()
+                        self.return_status = ''               
                 self.clear_window()
                 self.show_main_back()
                 self.return_end_text.place(relx=0.5, rely=0.4, anchor='center')
@@ -867,7 +892,7 @@ class MainMenu:
      # error here 
     def admin_item_tool_batch_add_entry(self, event=None):
         print( 'UNDER INVESTIGATION')
-        self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="UNDER INVESTIGATION daw ana kenet", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
+        #self.message_box_test = CTkMessagebox(master=self.root, title="ERROR", message="UNDER INVESTIGATION daw ana kenet", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100) 
         #batch_text = self.admin_item_tool_ID_barcode_entry.get()
         #self.admin_item_tool_ID_batch_box.insert('end', batch_text + '\n')
         #self.admin_item_tool_ID_barcode_entry.delete(0, 'end')
@@ -906,16 +931,18 @@ class MainMenu:
                         if not isinstance( row['UNIT'], str) and not isinstance(row['DESCRIPTION'], str) and not isinstance(row['BARCODE'], str):
                                 self.message_box_test = CTkMessagebox(master=self.root, title="Error", message="An error occurred, values should be string", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)    
                                 return
-                        self.admin_key_frame_ubox.insert('end', row['UNIT'] + '\n')
-                        self.admin_key_frame_bbox.insert('end', row['DESCRIPTION'] + '\n')
-                        self.admin_key_frame_dbox.insert('end', row['BARCODE'] + '\n' )
+                        self.admin_key_frame_ubox.insert('end', str(row['UNIT']) + '\n')
+                        self.admin_key_frame_bbox.insert('end', str(row['DESCRIPTION']) + '\n')
+                        self.admin_key_frame_dbox.insert('end', str(row['BARCODE']) + '\n' )
                         self.batch_add.append((row['UNIT'], row['BARCODE'], row['DESCRIPTION']))
         except UnicodeDecodeError:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)      
-                self.batch_add.clear()                      
+                self.batch_add.clear()     
+                self.clear_all_entry()                 
         except ValueError:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)       
                 self.batch_add.clear()               
+                self.clear_all_entry()
         except:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid Column Name", message="Please check column names, it must match with the documentation", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)                    
                 self.admin_key_frame_ubox.delete( '0.0', 'end' )
@@ -931,17 +958,16 @@ class MainMenu:
                         print( f"File selected: {file_path} " )
                 self.batch_add.clear()
                 get_data = pandas.read_csv(file_path, engine='python')
-                print(get_data)
+                
                 print( f"The length of the csv is {len(get_data)} and the number of columns {len(get_data.columns)}")
                 if get_data.empty:
                         self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV File", message="The CSV file is empty", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
                         return
-                print('1')
                 
                 # drop all the empty rows through this function
                 get_data = get_data.dropna(how='all')
                 get_data = get_data.reset_index(drop=True)
-                print(get_data)
+                
                         
                 # this function checks if there are duplicates in barcodes
                 if get_data['BARCODE'].duplicated().any():
@@ -965,18 +991,20 @@ class MainMenu:
                                 self.message_box_test = CTkMessagebox(master=self.root, title="Error", message="An error occurred, values should be string", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)    
                                 return
                         
-                        self.admin_equipment_frame_nbox.insert('end', row['NAME'] + '\n')
-                        self.admin_equipment_frame_bbox.insert('end', row['BARCODE'] + '\n')
+                        self.admin_equipment_frame_nbox.insert('end', str(row['NAME']) + '\n')
+                        self.admin_equipment_frame_bbox.insert('end', str(row['BARCODE']) + '\n')
                         self.admin_equipment_frame_dabox.insert('end', str(row['D_ACQUISITION']) + '\n' )
                         self.admin_equipment_frame_dcbox.insert('end', str(row['D_CALIBRATION']) + '\n' )
                         self.batch_add.append((row['NAME'], row['BARCODE'], str(row['D_ACQUISITION']), str(row['D_CALIBRATION']), row['DESCRIPTION']))
                         print( type(row['D_ACQUISITION']) )
         except UnicodeDecodeError:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)      
-                self.batch_add.clear()                      
+                self.batch_add.clear()      
+                self.clear_all_entry()                
         except ValueError:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid CSV", message="Please upload a CSV file", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)       
                 self.batch_add.clear()   
+                self.clear_all_entry()
         
         except:
                 self.message_box_test = CTkMessagebox(master=self.root, title="Invalid Column Name", message="Please check column names, it must match with the documentation", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)                    
@@ -1121,7 +1149,7 @@ class MainMenu:
                         k = k + 1
                 print(res)
         else:
-                print( 'Not unreturned' )
+                self.message_box_test = CTkMessagebox(master=self.root, title="Users has no unreturned", message="User is clear from unreturned", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)
                 
         
             
@@ -1154,8 +1182,7 @@ class MainMenu:
         self.print_logs_button.place(relx=0.5, rely=0.6, anchor='center')
     
     def admin_verification(self, event = None):
-            if self.admin_scan_entry.get()  == 'admin':
-                    self.message_box_test = CTkMessagebox(master=self.root, title="Successful admin login", message="Admin login successful", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
+            if self.admin_scan_entry.get()  == 'admin':  
                     self.show_admin_menu()
             else:
                     self.message_box_test = CTkMessagebox(master=self.root, title="Unsuccessful admin login", message="Admin login not successful", button_color ="#00291d", border_width = 2, button_hover_color="#005142", font=('Sora', 12), fade_in_duration=100)  
@@ -1189,13 +1216,21 @@ class MainMenu:
                         doc = SimpleDocTemplate(pdf_path, pagesize=letter)
                         styles = getSampleStyleSheet()
                         elems = []
+                        timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
                         
                         h_center = ParagraphStyle(
                                 "CenterHeading",
                                 parent=styles["Heading1"],
                                 alignment = 1,
                                 spaceAfter = 12)
+                        h_center1 = ParagraphStyle(
+                                "CenterHeading",
+                                parent=styles["Heading2"],
+                                alignment = 1,
+                                spaceAfter = 12)
                         elems.append(Paragraph('PROJECT LISTA BORROW AND RETURN REPORT', h_center))
+                        elems.append(Paragraph(f'FROM {start_string} TO {end_string}', h_center1))
+                        elems.append(Paragraph(f'Date Generated: {timestamp}', h_center1))
                         elems.append(Paragraph('Borrow and Return Logs', styles['Heading2']))
                         elems.append(Spacer(1,6))
                         # query for keys and equipments that are borrowed and returned
@@ -1316,7 +1351,9 @@ class MainMenu:
                                 elems.append(tbl3)
                                 elems.append(Spacer(1,18))
                                 elems.append(PageBreak())
-                        doc.build(elems)                        
+                        doc.build(elems)     
+                        folder_path = '/home/keylog/ncr_innovation_project/PythonProject/Reportings' 
+                        subprocess.Popen(["xdg-open", folder_path], bufsize=0)
         
             
             

@@ -5,7 +5,6 @@ class NcrEmployees:
 		self.last_name = ''
 		self.is_active = 1
 		self.rfid = ''
-		print('YAWA')
 		
 	def set_ncr_employee(self, q_lid, first_name, last_name, is_active, rfid ):
 		self.q_lid = q_lid
